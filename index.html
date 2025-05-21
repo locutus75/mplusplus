@@ -1,0 +1,3650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>M++</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.4.14/src-min/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body class="p-4">
+    <div class="container" style="max-width: 90%; width: 90%;">
+        <h1 class="mb-4">M++</h1>
+        <!-- Nav Tabs -->
+        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" data-bs-target="#connect" data-bs-toggle="tab" id="connect-tab" role="tab" type="button">Connect</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-target="#tables" data-bs-toggle="tab" id="tables-tab" role="tab" type="button">Tables</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-target="#querybuilder" data-bs-toggle="tab" id="querybuilder-tab" role="tab" type="button">Query Builder</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-target="#aqb" data-bs-toggle="tab" id="aqb-tab" role="tab" type="button">AQB</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" data-bs-target="#reports" data-bs-toggle="tab" id="ser-tab" role="tab" type="button">Reports</button>
+            </li>
+        </ul>
+        <!-- Tab Contents -->
+        <div class="tab-content mt-3">
+            <!-- Connect Tab -->
+            <div class="tab-pane fade show active" id="connect" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Database Connection</h5>
+
+                        <!-- Saved Connections -->
+                        <div class="mb-3 row align-items-center">
+                            <label for="savedConnections" class="col-sm-3 col-form-label">Saved Connections:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    <select class="form-select" id="savedConnections" onchange="loadConnection()">
+                                        <option value="">-- Select a connection --</option>
+                                    </select>
+                                    <button class="btn btn-outline-danger" type="button" onclick="deleteConnection()" title="Delete Selected Connection">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Connection Form -->
+                        <div class="mb-2 row">
+                            <label for="dbHost" class="col-sm-3 col-form-label">Host:</label>
+                            <div class="col-sm-9"><input class="form-control" id="dbHost" placeholder="Host" value="localhost"/></div>
+                        </div>
+                        <div class="mb-2 row">
+                            <label for="dbPort" class="col-sm-3 col-form-label">Port:</label>
+                            <div class="col-sm-9"><input class="form-control" id="dbPort" placeholder="Port" value="5432"/></div>
+                        </div>
+                        <div class="mb-2 row">
+                            <label for="dbName" class="col-sm-3 col-form-label">Database:</label>
+                            <div class="col-sm-9"><input class="form-control" id="dbName" placeholder="Database"/></div>
+                        </div>
+                        <div class="mb-2 row">
+                            <label for="dbUser" class="col-sm-3 col-form-label">User:</label>
+                            <div class="col-sm-9"><input class="form-control" id="dbUser" placeholder="User"/></div>
+                        </div>
+                        <div class="mb-2 row">
+                            <label for="dbPassword" class="col-sm-3 col-form-label">Password:</label>
+                            <div class="col-sm-9"><input class="form-control" id="dbPassword" placeholder="Password" type="password"/></div>
+                        </div>
+                        <div class="mb-2 row">
+                            <label for="sslMode" class="col-sm-3 col-form-label">SSL Mode:</label>
+                            <div class="col-sm-9">
+                                <select class="form-select" id="sslMode">
+                                    <option value="disable">disable - No SSL</option>
+                                    <option value="allow">allow - Try non-SSL first, then SSL</option>
+                                    <option value="prefer">prefer - Try SSL first, then non-SSL</option>
+                                    <option value="require">require - Always use SSL</option>
+                                    <option value="verify-ca">verify-ca - Verify CA certificate</option>
+                                    <option value="verify-full">verify-full - Verify CA and hostname</option>
+                                </select>
+                                <small class="text-muted">verify-ca and verify-full may require additional certificate configuration</small>
+                            </div>
+                        </div>
+
+                        <!-- Save Connection -->
+                        <div class="mb-3 row align-items-center">
+                            <label for="connectionName" class="col-sm-3 col-form-label">Save As:</label>
+                            <div class="col-sm-9">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="connectionName" placeholder="Connection Name">
+                                    <button class="btn btn-secondary" type="button" onclick="saveConnection()">Save Connection</button>
+                                </div>
+                                <small class="text-muted">Password will not be saved.</small>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button class="btn btn-primary" onclick="connect()">Connect</button>
+                        </div>
+
+                        <!-- Connection Log Section -->
+                        <div class="mt-4">
+                            <h6>Connection Log</h6>
+                            <div class="border rounded p-2 bg-light" style="height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.85rem;" id="connectionLog">
+                                <div class="text-muted">Ready to connect. Log will appear here...</div>
+                            </div>
+                            <div class="text-end mt-1">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="clearConnectionLog()">Clear Log</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tables Tab -->
+            <div class="tab-pane fade" id="tables" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">Available Tables</h5>
+                            <div class="d-flex">
+                                <div class="input-group me-2" style="width: 200px;">
+                                    <span class="input-group-text"><i class="bi bi-filter"></i></span>
+                                    <select class="form-select" id="schemaFilterSelect" onchange="filterTables()">
+                                        <option value="">All Schemas</option>
+                                    </select>
+                                </div>
+                                <div class="input-group me-2" style="width: 250px;">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" class="form-control" id="tableSearchInput" placeholder="Search table name..." onkeyup="filterTables()">
+                                </div>
+                                <button class="btn btn-outline-secondary" onclick="loadTables()">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh Tables
+                                </button>
+                            </div>
+                        </div>
+                        <div id="tablesContainer" class="mt-3">
+                            <div class="alert alert-info">Connect to a database to view tables.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Query Builder Tab -->
+            <div class="tab-pane fade" id="querybuilder" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Query Builder</h5>
+                        <!-- Table selection -->
+                        <div class="mb-3 row align-items-center">
+                            <label for="qbTableSelect" class="col-sm-2 col-form-label">Table:</label>
+                            <div class="col-sm-4">
+                                <select class="form-select" id="qbTableSelect" onchange="qbOnTableSelect()">
+                                    <option value="">-- Select table --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <!-- Builder area: appears after table selection -->
+                        <div id="qbBuilderArea" style="display: none;">
+                            <!-- Columns -->
+                            <div class="mb-3">
+                                <h6>Columns</h6>
+                                <div id="qbColumnsList" class="mb-2"></div>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="qbSelectAllColumns()">Select All</button>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="qbDeselectAllColumns()">Deselect All</button>
+                            </div>
+                            <!-- Filters -->
+                            <div class="mb-3">
+                                <h6>Filters</h6>
+                                <div id="qbFiltersList"></div>
+                                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="qbAddFilter()">Add Filter</button>
+                            </div>
+                            <!-- Sorting -->
+                            <div class="mb-3 row align-items-center">
+                                <label class="col-sm-2 col-form-label">Sort By:</label>
+                                <div class="col-sm-4">
+                                    <select class="form-select" id="qbSortColumn">
+                                        <option value="">None</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    <select class="form-select" id="qbSortDirection">
+                                        <option value="asc">ASC</option>
+                                        <option value="desc">DESC</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- Limit -->
+                            <div class="mb-3 row align-items-center">
+                                <label class="col-sm-2 col-form-label">Limit:</label>
+                                <div class="col-sm-2">
+                                    <input type="number" class="form-control" id="qbLimit" value="100" min="1"/>
+                                </div>
+                            </div>
+                            <!-- Save / Load Queries -->
+                            <div class="mb-3 row align-items-center">
+                                <label class="col-sm-2 col-form-label">Saved Queries:</label>
+                                <div class="col-sm-5">
+                                    <div class="input-group">
+                                        <select class="form-select" id="qbSavedQueries" onchange="qbLoadQuery()">
+                                            <option value="">-- Select a saved query --</option>
+                                        </select>
+                                        <button class="btn btn-outline-danger" type="button" onclick="qbDeleteQuery()" title="Delete Saved Query"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3 row align-items-center">
+                                <label class="col-sm-2 col-form-label">Save As:</label>
+                                <div class="col-sm-5">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="qbQueryName" placeholder="Query Name"/>
+                                        <button class="btn btn-secondary" type="button" onclick="qbSaveQuery()">Save Query</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end mb-3">
+                                <button class="btn btn-primary" onclick="qbRunQuery()">Run Query</button>
+                            </div>
+                            <!-- Results -->
+                            <div id="qbResults"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div class="tab-pane fade" id="reports" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Available Queries</h5>
+                        <div class="row mb-3">
+                            <div class="col-sm-8">
+                                <select class="form-select" id="savedQueriesDropdown" onchange="executeSelectedQuery()">
+                                    <option value="">-- Select query </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="queryInformation" class="mb-3">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="2">Query Information</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="word-break: break-all;">
+                                                <strong>SQL Query:</strong>
+                                                <div id="querySqlDisplay" style="font-family: monospace;"></div>
+                                            </td>
+                                        </tr>
+                                        <div id="variablesContainer" class="mt-2" style="display: none;">
+                                            <h6>Variables:</h6>
+                                            <div id="variablesContainerList"></div>
+                                        </div>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-center">
+                                <button id="executeQueryBtn" class="btn btn-primary" disabled>Execute</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="queryResultsTable">
+                                    <thead id="queryResultsHeader">
+                                        <tr><th>Results will appear here</th></tr>
+                                    </thead>
+                                    <tbody id="queryResultsBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Export Results Buttons -->
+                            <div id="exportButtonsContainer" class="mt-2 text-end" style="display: none;">
+                                <button class="btn btn-sm btn-outline-success me-2" onclick="exportTableData('excel')">
+                                    <i class="bi bi-file-excel"></i> Export to Excel
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="exportTableData('csv')">
+                                    <i class="bi bi-file-text"></i> Export to CSV
+                                </button>
+                            </div>
+                            <!-- Column Visibility Toggle -->
+                            <div id="columnVisibilityContainer" class="mt-2 mb-2" style="display: none;">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="bi bi-layout-three-columns"></i> Toggle Columns
+                                    </button>
+                                    <div class="dropdown-menu p-2" style="max-height: 300px; overflow-y: auto;" id="columnToggleDropdown">
+                                        <!-- Column checkboxes will be added here dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Purchase Order Generator Button and Results -->
+                        <div id="poGeneratorSection" class="mt-3" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <button id="generatePOBtn" class="btn btn-primary">Generate Purchase Order</button>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="advancedPOLogicSwitch" checked>
+                                    <label class="form-check-label" for="advancedPOLogicSwitch">Use Advanced Ratio Logic (Voorraad/Aantal < 1.5)</label>
+                                </div>
+                            </div>
+                            <button id="generateSalesReportBtn" class="btn btn-success mb-3">Generate Supplier Sales Report</button>
+                            <div id="poResults" class="mt-3"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- AQB Tab -->
+            <div class="tab-pane fade" id="aqb" role="tabpanel">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Advanced Query Builder</h5>
+                        <div class="d-flex justify-content-between mb-3">
+                            <div class="input-group" style="width: 60%">
+                                <select class="form-select" id="aqbSavedQueries" onchange="aqbLoadSelectedQuery()">
+                                    <option value="">-- Select query --</option>
+                                </select>
+                                <button class="btn btn-outline-danger" onclick="deleteAqbQuery()">Delete</button>
+                            </div>
+                            <input type="text" class="form-control" id="name" placeholder="Save as">
+                            <button class="btn" onclick="saveAqbQuery()">Save</button>
+                        </div>
+                        <div class="editor" id="editor" style="height: 400px; border: 1px solid #ccc; width: 100%;"></div>
+                        <div class="d-flex justify-content-between mt-3">
+                            <div class="btn-group">
+                                <button class="btn btn-primary" onclick="aqbRunQuery()">Run</button>
+                                <button class="btn btn-secondary" onclick="aqbExplain()">Explain</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive mt-3" id="results">
+                            <table class="table border" id="aqbResultsTable">
+                                <thead id="queryResultsHeader">
+                                    <tr><th>Query results will appear here</th></tr>
+                                </thead>
+                                <tbody id="queryResultsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table Preview Modal -->
+            <div class="modal fade" id="tablePreviewModal" tabindex="-1" aria-labelledby="tablePreviewModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="tablePreviewModalLabel">Table Preview</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="tablePreviewModalBody">
+                            <!-- Preview content will be inserted here -->
+                        </div>
+                        <div class="modal-footer">
+                            <div class="d-flex justify-content-between w-100 align-items-center">
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="prevPreviewPageBtn" onclick="prevPreviewPage()">
+                                        <i class="bi bi-chevron-left"></i> Previous
+                                    </button>
+                                    <span id="previewPageInfo" class="mx-2">Page 1 of 1</span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="nextPreviewPageBtn" onclick="nextPreviewPage()">
+                                        Next <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </div>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Supplier Sales Report Modal -->
+            <div class="modal fade" id="salesReportModal" tabindex="-1" aria-labelledby="salesReportModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 90%; width: 90%;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="salesReportModalLabel">Supplier Sales Report</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <div>
+                                    <div class="input-group mb-3" style="display: none;">
+                                        <span class="input-group-text">Date Range</span>
+                                        <select class="form-select" id="salesDateRange">
+                                            <option value="last30">Last 30 Days</option>
+                                            <option value="last90">Last 90 Days</option>
+                                            <option value="lastYear">Last Year</option>
+                                            <option value="ytd">Year to Date</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <button class="btn btn-outline-secondary" id="refreshSalesReport">
+                                        <i class="bi bi-arrow-clockwise"></i> Refresh
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Column Selection UI -->
+                            <div class="mb-3">
+                                <h6>Select Columns to Include:</h6>
+                                <div id="salesReportColumnSelector" class="d-flex flex-wrap gap-2 mb-3"></div>
+                            </div>
+                            <div id="salesReportContent"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Month Selection Modal for PDF Export -->
+            <div class="modal fade" id="monthSelectModal" tabindex="-1" aria-labelledby="monthSelectModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="monthSelectModalLabel">Select Report Period</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row mb-3">
+                                <label for="reportMonth" class="col-sm-4 col-form-label">Month:</label>
+                                <div class="col-sm-8">
+                                    <select class="form-select" id="reportMonth">
+                                        <option value="1">January</option>
+                                        <option value="2">February</option>
+                                        <option value="3">March</option>
+                                        <option value="4">April</option>
+                                        <option value="5">May</option>
+                                        <option value="6">June</option>
+                                        <option value="7">July</option>
+                                        <option value="8">August</option>
+                                        <option value="9">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="reportYear" class="col-sm-4 col-form-label">Year:</label>
+                                <div class="col-sm-8">
+                                    <select class="form-select" id="reportYear">
+                                        <!-- Will be populated with JavaScript -->
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="confirmReportPeriod">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let dbConfig = {};
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentTable = '';
+        let allTables = []; 
+        let currentSort = { column: '', direction: 'asc' };
+        const STORAGE_KEY = 'pgExplorerConnections';
+        const PAGE_SIZE = 20;
+        const PROXY_URL = 'http://localhost:3001';
+        const QUERIES_KEY = 'pgExplorerQueries';
+        var aceEditor = null;
+        // Used for storing PDF export supplier
+        let pdfExportSupplier = '';
+        
+        // Initialize previewState object for table preview
+        let previewState = {
+            tableName: '',
+            currentPage: 1,
+            pageLength: 20,
+            totalPages: 1,
+            sortColumn: '',
+            sortDirection: 'asc'
+        };
+        
+        // Store table data for filtering
+        let tableResultsData = {
+            currentData: null,
+            originalData: null,
+            filters: {}
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSavedConnectionsDropdownDropdown();
+            
+            document.getElementById('querybuilder-tab').addEventListener('shown.bs.tab', function() {
+                qbPopulateTablesDropdown();
+                qbLoadSavedQuerieseries();
+                document.getElementById('qbBuilderArea').style.display = 'none';
+                document.getElementById('qbResults').innerHTML = '';
+                document.getElementById('qbTableSelect').value = '';
+                document.getElementById('qbSavedQueries').onchange = function() { qbLoadQuery(); };
+            }); 
+
+            document.getElementById('ser-tab').addEventListener('shown.bs.tab', function()  { 
+                loadSavedQueriesDropdown();
+            }); 
+
+            document.getElementById('aqb-tab').addEventListener('shown.bs.tab', function () {
+                if (!aceEditor) initEditor();        
+                reloadAqbQueries();        
+                document.getElementById('aqbSavedQueries').onchange = aqbLoadSelectedQuery;
+            }); 
+
+            reloadAqbQueries();
+            initEditor();
+            
+            document.getElementById('generateSalesReportBtn')?.addEventListener('click', function() {
+                generateSupplierSalesReport();
+            });
+
+            document.getElementById('refreshSalesReport')?.addEventListener('click', function() {
+                generateSupplierSalesReport(true);
+            });
+            
+            // Connect update report button
+            const updateReportBtn = document.querySelector('#salesReportColumnSelector .btn-outline-primary');
+            if (updateReportBtn) {
+                updateReportBtn.onclick = generateSalesReport;
+            }
+        });
+
+        function saveConnection() {
+            const connectionName = document.getElementById('connectionName').value.trim();
+            if (!connectionName) {
+                alert('Please enter a name for this connection');
+                return;
+            }
+
+            const savedConnections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            
+            savedConnections[connectionName] = {
+                databaseHost: document.getElementById('dbHost').value,
+                databasePort: parseInt(document.getElementById('dbPort').value),
+                databaseName: document.getElementById('dbName').value,
+                databaseUser: document.getElementById('dbUser').value,
+                sslMode: document.getElementById('sslMode').value
+            };
+            
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(savedConnections));
+            
+            document.getElementById('connectionName').value = '';
+            
+            loadSavedConnectionsDropdownDropdown();
+            
+            logToConnection(`Connection saved as "${connectionName}"`, 'success');
+        }
+        
+        function loadConnection() {
+            const connectionName = document.getElementById('savedConnections').value;
+            if (!connectionName) return;
+            
+            const savedConnections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            const connection = savedConnections[connectionName];
+            
+            if (connection) {
+                document.getElementById('dbHost').value = connection.databaseHost || '';
+                document.getElementById('dbPort').value = connection.databasePort || '5432';
+                document.getElementById('dbName').value = connection.databaseName || '';
+                document.getElementById('dbUser').value = connection.databaseUser || '';
+                document.getElementById('dbPassword').value = ''; 
+                document.getElementById('sslMode').value = connection.sslMode || 'disable';
+                
+                logToConnection(`Loaded connection "${connectionName}"`, 'info');
+            }
+        }
+        
+        function deleteConnection() {
+            const connectionName = document.getElementById('savedConnections').value;
+            if (!connectionName) {
+                alert('Please select a connection to delete');
+                return;
+            }
+            
+            if (!confirm(`Are you sure you want to delete the connection "${connectionName}"?`)) {
+                return;
+            }
+            
+            const savedConnections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            delete savedConnections[connectionName];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(savedConnections));
+            
+            loadSavedConnectionsDropdownDropdown();
+            logToConnection(`Connection "${connectionName}" deleted`, 'info');
+        }
+        
+        function loadSavedConnectionsDropdownDropdown() {
+            const select = document.getElementById('savedConnections');
+            const savedConnections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            
+            select.innerHTML = '<option value="">-- Select a connection --</option>';
+            
+            Object.keys(savedConnections).sort().forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+        }
+
+        async function connect() {
+            dbConfig = {
+                databaseHost: document.getElementById('dbHost').value,
+                databasePort: parseInt(document.getElementById('dbPort').value),
+                databaseName: document.getElementById('dbName').value,
+                databaseUser: document.getElementById('dbUser').value,
+                databasePassword: document.getElementById('dbPassword').value,
+                sslMode: document.getElementById('sslMode').value
+            };
+
+            clearConnectionLog();
+            logToConnection(`Connecting to: ${dbConfig.databaseHost}:${dbConfig.databasePort}/${dbConfig.databaseName}`, 'info');
+            logToConnection(`User: ${dbConfig.databaseUser}, SSL Mode: ${dbConfig.sslMode}`, 'info');
+
+            try {
+                const connectButton = document.querySelector('#connect button');
+                connectButton.disabled = true;
+                connectButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Connecting...';
+                
+                logToConnection(`Sending API request to ${PROXY_URL}/api/tables...`, 'info');
+                logToConnection(`Request body: ${JSON.stringify({
+                    ...dbConfig,
+                    databasePassword: '********' 
+                })}`, 'info');
+                
+                const res = await fetch(`${PROXY_URL}/api/tables`, { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dbConfig)
+                });
+                
+                logToConnection(`Received response: ${res.status} ${res.statusText}`, 'info');
+
+                connectButton.disabled = false;
+                connectButton.textContent = 'Connect';
+
+                if (!res.ok) {
+                    let errorMessage;
+                    try {
+                        logToConnection('Parsing error response...', 'info');
+                        const errorData = await res.json();
+                        errorMessage = errorData.message || res.statusText;
+                        logToConnection(`Parsed error message: ${errorMessage}`, 'error');
+                    } catch (parseError) {
+                        logToConnection(`Error parsing error response: ${parseError.message}`, 'error');
+                        try {
+                            errorMessage = await res.text() || res.statusText;
+                            logToConnection(`Using raw error text: ${errorMessage}`, 'info');
+                        } catch (textError) {
+                            logToConnection(`Error getting text from response: ${textError.message}`, 'error');
+                            errorMessage = res.statusText || 'Unknown error';
+                        }
+                    }
+                    throw new Error(`Connection failed: ${errorMessage}`);
+                }
+
+                logToConnection('Successfully connected! Parsing table list...', 'success');
+                const tables = await res.json();
+                logToConnection(`Retrieved ${tables.length} tables`, 'info');
+                
+                if (tables.length) {
+                    logToConnection(`Connection succeeded, found ${tables.length} tables`, 'success');
+                    
+                    // Activate tables tab and load tables
+                    document.getElementById('tables-tab').click();
+                    loadTables();
+                } else {
+                    logToConnection('Connection succeeded but no tables were found', 'warn');
+                }
+
+            } catch (error) {
+                console.error('Connection Error:', error);
+                logToConnection(`Connection failed: ${error.message}`, 'error');
+                alert(`Connection Error: ${error.message}`);
+            }
+        }
+
+        async function loadTables() {
+            logToConnection('Loading tables...', 'info');
+            document.getElementById('tablesContainer').innerHTML = 
+                '<div class="d-flex justify-content-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+            
+            try {
+                // First get the table list
+                const res = await fetch(`${PROXY_URL}/api/tables`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dbConfig)
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`Error loading tables: ${res.statusText}`);
+                }
+                
+                const tables = await res.json();
+                logToConnection(`Retrieved ${tables.length} tables`, 'success');
+                
+                // Populate schema filter dropdown
+                const schemaFilterSelect = document.getElementById('schemaFilterSelect');
+                const schemas = [...new Set(tables.map(table => table.table_schema))].sort();
+                
+                schemaFilterSelect.innerHTML = '<option value="">All Schemas</option>';
+                schemas.forEach(schema => {
+                    const option = document.createElement('option');
+                    option.value = schema;
+                    option.textContent = schema;
+                    schemaFilterSelect.appendChild(option);
+                });
+                
+                // Then get row counts for each table
+                let tablesWithRowCounts = [];
+                
+                // Process tables in batches to avoid overwhelming the server
+                const BATCH_SIZE = 10;
+                for (let i = 0; i < tables.length; i += BATCH_SIZE) {
+                    const batch = tables.slice(i, i + BATCH_SIZE);
+                    const batchResults = await Promise.all(batch.map(async (table) => {
+                        try {
+                            const fullTableName = `${table.table_schema}.${table.table_name}`;
+                            logToConnection(`Fetching row count for ${fullTableName}...`, 'info');
+                            
+                            const countRes = await fetch(`${PROXY_URL}/api/row-count`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    ...dbConfig,
+                                    tableName: fullTableName
+                                })
+                            });
+                            
+                            if (!countRes.ok) {
+                                const errorText = await countRes.text();
+                                logToConnection(`Error getting row count for ${fullTableName}: ${errorText}`, 'error');
+                                return { ...table, row_count: 'Error' };
+                            }
+                            
+                            const countData = await countRes.json();
+                            logToConnection(`Row count for ${fullTableName}: ${countData.count}`, 'info');
+                            return { ...table, row_count: countData.count };
+                        } catch (error) {
+                            logToConnection(`Error getting row count for ${table.table_name}: ${error.message}`, 'error');
+                            return { ...table, row_count: 'Error' };
+                        }
+                    }));
+                    
+                    tablesWithRowCounts = [...tablesWithRowCounts, ...batchResults];
+                    
+                    // Update UI incrementally
+                    if (i + BATCH_SIZE < tables.length) {
+                        logToConnection(`Processed ${i + BATCH_SIZE} of ${tables.length} tables...`, 'info');
+                    }
+                }
+                
+                allTables = tablesWithRowCounts; 
+                
+                // Apply current sorting if any
+                if (currentSort.column) {
+                    sortTables(currentSort.column, currentSort.direction);
+                } else {
+                    renderTables(tablesWithRowCounts);
+                }
+            } catch (error) {
+                logToConnection(`Error loading tables: ${error.message}`, 'error');
+                document.getElementById('tablesContainer').innerHTML = 
+                    `<div class="alert alert-danger">Error loading tables: ${error.message}</div>`;
+            }
+        }
+
+        function renderTables(tables) {
+            const container = document.getElementById('tablesContainer');
+            
+            if (!tables || tables.length === 0) {
+                container.innerHTML = '<div class="alert alert-warning">No tables found in the database.</div>';
+                return;
+            }
+            
+            let html = '<div class="table-responsive"><table class="table table-striped table-hover" id="tablesList">';
+            html += '<thead><tr>' + 
+               `<th class="sortable" onclick="sortTables('schema', '${currentSort.column === 'schema' && currentSort.direction === 'asc' ? 'desc' : 'asc'}')">
+                    Schema ${getSortIndicator('schema')}
+                </th>` + 
+                `<th class="sortable" onclick="sortTables('table', '${currentSort.column === 'table' && currentSort.direction === 'asc' ? 'desc' : 'asc'}')">
+                    Table Name ${getSortIndicator('table')}
+                </th>` + 
+                '<th>Type</th>' + 
+                '<th>Actions</th>' + 
+                '</tr></thead>';
+            html += '<tbody>';
+            
+            tables.forEach(table => {
+                const fullTableName = `${table.table_schema}.${table.table_name}`;
+                html += `
+                    <tr>
+                        <td>${table.table_schema}</td>
+                        <td>${table.table_name}</td>
+                        <td>${table.table_type || 'TABLE'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary me-1" onclick="previewTable('${fullTableName}')">
+                                <i class="bi bi-eye"></i> Preview
+                            </button>
+                            <button class="btn btn-sm btn-secondary" onclick="goToQueryBuilder('${fullTableName}')">
+                                <i class="bi bi-pencil-square"></i> Query
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+        
+        function getSortIndicator(column) {
+            if (currentSort.column !== column) return '';
+            return currentSort.direction === 'asc' ? 
+                '<i class="bi bi-arrow-up ms-1"></i>' : 
+                '<i class="bi bi-arrow-down ms-1"></i>';
+        }
+
+        function sortTables(column, direction) {
+            currentSort.column = column;
+            currentSort.direction = direction;
+            
+            filterTables(); 
+        }
+
+        function filterTables() {
+            const searchText = document.getElementById('tableSearchInput').value.toLowerCase().trim();
+            const schemaFilter = document.getElementById('schemaFilterSelect').value;
+            
+            let filteredTables = [...allTables];
+            
+            if (schemaFilter) {
+                filteredTables = filteredTables.filter(table => 
+                    table.table_schema === schemaFilter
+                );
+            }
+            
+            if (searchText) {
+                filteredTables = filteredTables.filter(table => 
+                    table.table_name.toLowerCase().includes(searchText)
+                );
+            }
+            
+            if (currentSort.column) {
+                sortTablesArray(filteredTables, currentSort.column, currentSort.direction);
+            }
+            
+            renderTables(filteredTables);
+        }
+
+        function sortTablesArray(tablesArray, column, direction) {
+            tablesArray.sort((a, b) => {
+                let valueA, valueB;
+                
+                switch(column) {
+                    case 'schema':
+                        valueA = a.table_schema;
+                        valueB = b.table_schema;
+                        break;
+                    case 'table':
+                        valueA = a.table_name;
+                        valueB = b.table_name;
+                        break;
+                    default:
+                        return 0;
+                }
+                
+                return direction === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA);
+            });
+            
+            return tablesArray;
+        }
+
+        async function previewTable(tableName) {
+            logToConnection(`Previewing table: ${tableName}`, 'info');
+            
+            const modal = new bootstrap.Modal(document.getElementById('tablePreviewModal'));
+            modal.show();
+
+            // Set pagination functions
+            window.prevPreviewPage = function() {
+                if (previewState.currentPage <= 1) return;
+                previewState.currentPage -= 1;
+                loadPreviewData();
+            }
+
+            window.nextPreviewPage = function() {
+                previewState.currentPage += 1;
+                loadPreviewData();
+            }
+
+            window.loadPreviewData = async function() {
+                const modalBody = document.getElementById('tablePreviewModalBody');
+                modalBody.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+                
+                try {
+                    const res = await fetch(`${PROXY_URL}/api/sample-rows`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            ...dbConfig,
+                            tableName: previewState.tableName,
+                            page: previewState.currentPage,
+                            pageLength: previewState.pageLength,
+                            sortColumn: previewState.sortColumn,
+                            sortDirection: previewState.sortDirection
+                        })
+                    });
+                    
+                    if (!res.ok) {
+                        throw new Error(`Error loading table preview: ${res.statusText}`);
+                    }
+                    
+                    const data = await res.json();
+                    
+                    const rows = Array.isArray(data.rows) ? data.rows : data;
+                    
+                    if (!rows || !rows.length) {
+                        modalBody.innerHTML = '<div class="alert alert-info">No data in this table.</div>';
+                        return;
+                    }
+                    
+                    const headers = Object.keys(rows[0]);
+                    
+                    let tableHtml = `
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead class="table-dark">
+                                    <tr>
+                    `;
+                    
+                    headers.forEach(header => {
+                        tableHtml += `
+                            <th class="sortable" onclick="sortPreviewTable('${header}')">
+                                ${header}
+                            </th>`;
+                    });
+                    
+                    tableHtml += `
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    rows.forEach(row => {
+                        tableHtml += '<tr>';
+                        headers.forEach(header => {
+                            let cellValue = row[header] !== null ? row[header] : 'NULL';
+                            tableHtml += `<td>${cellValue}</td>`;
+                        });
+                        tableHtml += '</tr>';
+                    });
+                    
+                    tableHtml += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                    
+                    modalBody.innerHTML = tableHtml;
+                    updatePagination();
+                } catch (error) {
+                    modalBody.innerHTML = `<div class="alert alert-danger">Error loading table preview: ${error.message}</div>`;
+                }
+            };
+
+            previewState.tableName = tableName;
+            await loadPreviewData();
+        }
+
+        function sortPreviewTable(column) {
+            previewState.sortColumn = column;
+            previewState.sortDirection = previewState.sortColumn === column ? (previewState.sortDirection === 'asc' ? 'desc' : 'asc') : 'asc';
+            loadPreviewData();
+        }
+
+        function updatePagination() {
+            const pageInfo = document.getElementById('previewPageInfo');
+            pageInfo.textContent = `Page ${previewState.currentPage} of ${previewState.totalPages}`;
+
+            // Disable/enable buttons if we're at first/last page
+            document.getElementById('prevPreviewPageBtn').disabled = previewState.currentPage <= 1;
+            document.getElementById('nextPreviewPageBtn').disabled = previewState.currentPage >= previewState.totalPages;
+        }
+
+        function logToConnection(message, level = 'info') {
+            if (!message) return;
+            
+            const log = document.getElementById('connectionLog');
+            if (!log) return;
+            
+            const entry = document.createElement('div');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            switch(level.toLowerCase()) {
+                case 'error':
+                    entry.className = 'text-danger';
+                    message = `❌ ${message}`;
+                    break;
+                case 'warn':
+                case 'warning':
+                    entry.className = 'text-warning';
+                    message = `⚠️ ${message}`;
+                    break;
+                case 'success':
+                    entry.className = 'text-success';
+                    message = `✅ ${message}`;
+                    break;
+                case 'info':
+                default:
+                    entry.className = 'text-info';
+                    message = `ℹ️ ${message}`;
+            }
+            
+            entry.textContent = `[${timestamp}] ${message}`;
+            log.appendChild(entry);
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function clearConnectionLog() {
+            const log = document.getElementById('connectionLog');
+            if (log) {
+                log.innerHTML = '';
+            }
+        }
+
+        // === Query Builder Logic ===
+        function qbPopulateTablesDropdown() {
+            const select = document.getElementById('qbTableSelect');
+            select.innerHTML = '<option value="">-- Select table --</option>';
+            if (!allTables || !allTables.length) return;
+            allTables.forEach(t => {
+                const opt = document.createElement('option');
+                const full = `${t.table_schema}.${t.table_name}`;
+                opt.value = full; opt.textContent = full;
+                select.appendChild(opt);
+            });
+        }
+
+        function qbOnTableSelect() {
+            const tbl = document.getElementById('qbTableSelect').value;
+            const area = document.getElementById('qbBuilderArea');
+            if (!tbl) { area.style.display = 'none'; return; }
+            area.style.display = '';
+            document.getElementById('qbResults').innerHTML = '';
+            document.getElementById('qbColumnsList').innerHTML = '';
+            document.getElementById('qbFiltersList').innerHTML = '';
+            populateQbColumnsAndOptions(tbl);
+        }
+
+        async function populateQbColumnsAndOptions(tableName) {
+            const cols = await fetchTableColumns(tableName);
+            const colsDiv = document.getElementById('qbColumnsList');
+            const sortSel = document.getElementById('qbSortColumn');
+            colsDiv.innerHTML = ''; sortSel.innerHTML = '<option value="">None</option>';
+            if (!cols.length) {
+                colsDiv.innerHTML = '<div class="text-muted">No columns or table is empty.</div>';
+                return;
+            }
+            cols.forEach(c => {
+                const d = document.createElement('div');
+                d.className = 'form-check form-check-inline';
+                d.innerHTML = `
+                    <input class="form-check-input qb-column-checkbox" type="checkbox" id="qbCol_${c}" value="${c}" checked>
+                    <label class="form-check-label" for="qbCol_${c}">${c}</label>`;
+                colsDiv.appendChild(d);
+                sortSel.appendChild(new Option(c, c));
+            });
+        }
+
+        async function fetchTableColumns(tableName) {
+            try {
+                const res = await fetch(`${PROXY_URL}/api/sample-rows`, {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ ...dbConfig, tableName, page:1, pageSize:1 })
+                });
+                if (!res.ok) throw new Error(res.statusText);
+                const js = await res.json();
+                const rows = js.rows || js;
+                return Array.isArray(rows) && rows.length ? Object.keys(rows[0]) : [];
+            } catch (e) {
+                logToConnection(`[QueryBuilder] Error fetching columns: ${e.message}`, 'error');
+                return [];
+            }
+        }
+
+        function qbSelectAllColumns() {
+            document.querySelectorAll('.qb-column-checkbox').forEach(cb=>cb.checked=true);
+        }
+        function qbDeselectAllColumns() {
+            document.querySelectorAll('.qb-column-checkbox').forEach(cb=>cb.checked=false);
+        }
+
+        function qbAddFilter() {
+            const cols = Array.from(document.querySelectorAll('.qb-column-checkbox')).map(x=>x.value);
+            const list = document.getElementById('qbFiltersList');
+            const div = document.createElement('div');
+            div.className = 'input-group mb-2 qb-filter';
+            const colS = document.createElement('select'); colS.className='form-select qb-filter-column';
+            cols.forEach(c=>colS.appendChild(new Option(c,c)));
+            const opS = document.createElement('select'); opS.className='form-select qb-filter-operator';
+            ['=', '!=', '>', '<', '>=', '<=', 'LIKE'].forEach(o=>opS.appendChild(new Option(o,o)));
+            const val = document.createElement('input'); val.type='text'; val.className='form-control qb-filter-value'; val.placeholder='Value';
+            const rm = document.createElement('button'); rm.type='button'; rm.className='btn btn-outline-danger'; rm.innerHTML='<i class="bi bi-x"></i>';
+            rm.onclick = ()=>list.removeChild(div);
+            [colS, opS, val, rm].forEach(el=>div.appendChild(el));
+            list.appendChild(div);
+        }
+
+        function qbLoadSavedQuerieseries() {
+            const obj = JSON.parse(localStorage.getItem(QUERIES_KEY)||'{}');
+            const sel = document.getElementById('qbSavedQueries');
+            sel.innerHTML = '<option value="">-- Select query --</option>';
+            
+            Object.keys(obj).sort().forEach(n=>sel.append(new Option(n,n)));
+        }
+
+        function qbSaveQuery() {
+            const name = document.getElementById('qbQueryName').value.trim();
+            if(!name) return alert('Enter a name for this query');
+            const tableName = document.getElementById('qbTableSelect').value;
+            if(!tableName) return alert('Select a table');
+            
+            const selected = {
+                tableName: tableName,
+                selectedColumns: Array.from(document.querySelectorAll('.qb-column-checkbox')).filter(x=>x.checked).map(x=>x.value),
+                filters: Array.from(document.querySelectorAll('.qb-filter')).map(d=>{
+                    const c=`"${d.querySelector('.qb-filter-column').value}"`;
+                    const o=d.querySelector('.qb-filter-operator').value;
+                    let v=d.querySelector('.qb-filter-value').value;
+                    if(o.toUpperCase()=== 'LIKE' || isNaN(v)) v=`'${v.replace(/'/g,"''")}'`;
+                    return `${c} ${o} ${v}`;
+                }),
+                sortColumn: document.getElementById('qbSortColumn').value,
+                sortDirection: document.getElementById('qbSortDirection').value,
+                limit: parseInt(document.getElementById('qbLimit').value) || null
+            };
+            
+            const combinedName = `[${tableName}] ${name}`;
+
+            const all = JSON.parse(localStorage.getItem(QUERIES_KEY)||'{}');
+            all[combinedName] = { 
+                tableName: selected.tableName, 
+                selectedColumns: selected.selectedColumns, 
+                filters: selected.filters, 
+                sortColumn: selected.sortColumn, 
+                sortDirection: selected.sortDirection, 
+                limit: selected.limit 
+            };
+            localStorage.setItem(QUERIES_KEY, JSON.stringify(all));
+            document.getElementById('qbQueryName').value='';
+            
+            loadSavedQueriesDropdown(); 
+            reloadAqbQueries(); 
+            logToConnection(`[Query Builder] Saved query "${combinedName}"`, 'success');
+        }
+        
+        function qbDeleteQuery() {
+            const sel = document.getElementById('qbSavedQueries');
+            const name = sel.value;
+            if(!name) return alert('Select a saved query to delete');
+            if(!confirm(`Delete "${name}"?`)) return;
+            
+            const all = JSON.parse(localStorage.getItem(QUERIES_KEY)||'{}');
+            delete all[name];
+            localStorage.setItem(QUERIES_KEY, JSON.stringify(all));
+            qbLoadSavedQuerieseries();
+            sel.value='';
+            loadSavedQueriesDropdown();
+            reloadAqbQueries();
+            logToConnection(`[Query Builder] Deleted query "${name}"`, 'info');
+        }
+
+        function loadSavedQueriesDropdown() {
+            const ob = JSON.parse(localStorage.getItem(QUERIES_KEY) || '{}');
+            const dropdown = document.getElementById('savedQueriesDropdown');
+            dropdown.innerHTML = '<option value="">-- Select query --</option>';
+            
+            Object.keys(ob).sort().forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                dropdown.appendChild(opt);
+            });
+        }
+
+        function executeSelectedQuery() {
+            const name = document.getElementById('savedQueriesDropdown').value;
+            if (!name) return;
+
+            const queries = JSON.parse(localStorage.getItem(QUERIES_KEY) || '{}');
+            const query = queries[name];
+            
+            if (!query) {
+                console.error('Query not found');
+                return;
+            }
+
+            const querySql = query.SQL || buildQueryDisplay(query);
+            const variables = Array.from(
+                new Set(
+                    querySql.match(/{{(.*?)}}/g) || []
+                )
+            ).map(v => v.replace('{{', '').replace('}}', ''));
+            
+            const variablesContainer = document.getElementById('variablesContainer');
+            variablesContainer.innerHTML = ''; 
+
+            if (variables.length) {
+                variablesContainer.style.display = 'block';
+                variables.forEach(varName => {
+                    const wrapperDiv = document.createElement('div');
+                    wrapperDiv.className = 'input-group mb-2';
+                    const inputField = document.createElement('input');
+                    inputField.type = 'text';
+                    inputField.className = 'form-control';
+                    inputField.placeholder = varName;
+                    const span = document.createElement('span');
+                    span.className = 'input-group-text';
+                    span.textContent = varName + ':';
+                    wrapperDiv.appendChild(span);
+                    wrapperDiv.appendChild(inputField);
+                    variablesContainer.appendChild(wrapperDiv);
+                });
+            } else {
+                variablesContainer.style.display = 'none';
+            }
+
+            document.getElementById('querySqlDisplay').innerHTML = querySql.replace(/{{(.*?)}}/g, '<span class="text-primary font-weight-bold">{{$1}}</span>');
+            
+            const executeQueryBtn = document.getElementById('executeQueryBtn');
+            if (executeQueryBtn) {
+                executeQueryBtn.disabled = false;
+                executeQueryBtn.onclick = () => {
+                    handleQueryExecution(query);
+                };
+            }
+        }
+
+        function handleQueryExecution(query) {
+            const resultsTable = document.getElementById('queryResultsTable');
+            const poGeneratorSection = document.getElementById('poGeneratorSection');
+            const exportButtonsContainer = document.getElementById('exportButtonsContainer');
+            const columnVisibilityContainer = document.getElementById('columnVisibilityContainer');
+            const variables = {};
+            
+            // Get variable values from inputs if they exist
+            const varsContainer = document.getElementById('variablesContainer');
+            if (varsContainer && varsContainer.style.display !== 'none') {
+                const inputs = varsContainer.querySelectorAll('input');
+                inputs.forEach(input => {
+                    const varName = input.placeholder;
+                    variables[varName] = input.value;
+                });
+            }
+            
+            // Replace variables in the query
+            let sql = buildQueryDisplay(query);
+            if (variables && Object.keys(variables).length) {
+                Object.keys(variables).forEach(key => {
+                    const pattern = new RegExp(`\\{\\{${key}\\}\\}`, 'g');
+                    sql = sql.replace(pattern, variables[key]);
+                });
+            }
+            
+            const executeBtn = document.getElementById('executeQueryBtn');
+            if (!resultsTable) return;
+            
+            resultsTable.innerHTML = '<div class="d-flex justify-content-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+            exportButtonsContainer.style.display = 'none';
+            columnVisibilityContainer.style.display = 'none';
+            
+            fetch(`${PROXY_URL}/api/query`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...dbConfig,
+                    query: sql,
+                    variables: variables
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                resultsTable.innerHTML = jsonToTable(data.data || data.rows || data);
+                resultsTable.querySelector('tbody').id = 'tableResultsBody';
+                
+                // Show export buttons if data exists
+                const tableData = data.data || data.rows || data;
+                if (tableData && tableData.length > 0) {
+                    exportButtonsContainer.style.display = 'block';
+                    columnVisibilityContainer.style.display = 'block';
+                    // Store data for export
+                    window.currentExportData = tableData;
+                    
+                    // Setup column visibility toggles
+                    setupColumnVisibilityToggles(tableData);
+                    
+                    // Add AI analysis buttons only if they don't already exist
+                    if (!document.querySelector('#exportButtonsContainer .ai-analysis-buttons')) {
+                        const aiButtonsHtml = `
+                            <div class="mt-2 ai-analysis-buttons">
+                                <button class="btn btn-sm btn-outline-primary me-2" onclick="generateAITableAnalysis(false)">
+                                    <i class="bi bi-graph-up"></i> AI Analysis (All Data)
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="generateAITableAnalysis(true)">
+                                    <i class="bi bi-graph-up"></i> AI Analysis (Filtered Data)
+                                </button>
+                            </div>
+                        `;
+                        exportButtonsContainer.innerHTML += aiButtonsHtml;
+                    }
+                } else {
+                    exportButtonsContainer.style.display = 'none';
+                    columnVisibilityContainer.style.display = 'none';
+                }
+                
+                // Show PO generator button if appropriate columns exist
+                if (tableData && tableData.length > 0) {
+                    const columns = Object.keys(tableData[0]);
+                    if (columns.some(col => col.toLowerCase().includes('aantal') || col.toLowerCase() === 'aantal') && 
+                        columns.some(col => col.toLowerCase().includes('voorraad') || col.toLowerCase() === 'voorraad')) {
+                        poGeneratorSection.style.display = 'block';
+                        document.getElementById('generatePOBtn').onclick = () => generatePurchaseOrder(tableData);
+                    } else {
+                        poGeneratorSection.style.display = 'none';
+                    }
+                } else {
+                    poGeneratorSection.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                resultsTable.innerHTML = `<div class="alert alert-danger">Error executing query: ${error.message}</div>`;
+                logToConnection(`Query failed: ${error.message}`, 'error');
+                exportButtonsContainer.style.display = 'none';
+                columnVisibilityContainer.style.display = 'none';
+            })
+            .finally(() => {
+                executeBtn.disabled = false;
+            });
+        }
+
+        async function executeAndDisplaySQL(sql) {
+            const resultsTable = document.getElementById('queryResultsTable');
+            const executeBtn = document.getElementById('executeQueryBtn');
+            executeBtn.disabled = true;
+            
+            resultsTable.innerHTML = '<div class="d-flex justify-content-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+            
+            try {
+                const res = await fetch(`${PROXY_URL}/api/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...dbConfig,
+                        query: sql
+                    })
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`Server response ${res.status} ${res.statusText}`);
+                }
+                
+                const data = await res.json();
+                
+                resultsTable.innerHTML = jsonToTable(data.data || data.rows || data);
+            } catch (error) {
+                resultsTable.innerHTML = `<div class="alert alert-danger">Error executing query: ${error.message}</div>`;
+                logToConnection(`Error: ${error.message}`, 'error');
+            } finally {
+                executeBtn.disabled = false;
+            }
+        }
+
+        function initEditor() {
+            aceEditor = ace.edit('editor');
+            aceEditor.setTheme('ace/theme/chrome');
+            aceEditor.session.setMode('ace/mode/sql');
+            aceEditor.setValue('-- Type your SQL here\nSELECT * FROM information_schema.tables LIMIT 10;');
+            aceEditor.setFontSize(14);
+            aceEditor.setOptions({
+                enableBasicAutocompletion: true,
+                enableLiveAutocompletion: true,
+                enableSnippets: true
+            });
+        }
+
+        async function aqbLoadSelectedQuery() {
+            const name = document.getElementById('aqbSavedQueries').value;
+            if (!name) return;
+
+            const queries = JSON.parse(localStorage.getItem(QUERIES_KEY) || '{}');
+            const query = queries[name];
+            
+            if (query) {
+                aceEditor.setValue(query.SQL || buildQueryDisplay(query));
+                document.getElementById('name').value = name;
+                logToConnection(`[AQB] Loaded query "${name}"`, 'success');
+            }
+        }
+
+        function saveAqbQuery() {
+            const name = document.getElementById('name').value.trim();
+            if (!name) return alert('Enter a name for this query');
+            
+            const query = { SQL: aceEditor.getValue() };
+            const queries = JSON.parse(localStorage.getItem(QUERIES_KEY) || '{}');
+            queries[name] = query;
+            localStorage.setItem(QUERIES_KEY, JSON.stringify(queries));
+            document.getElementById('name').value = '';
+            loadSavedQueriesDropdown(); 
+            reloadAqbQueries(); 
+            logToConnection(`[AQB] Saved query "${name}"`, 'success');
+        }
+
+        function deleteAqbQuery() {
+            const name = document.getElementById('aqbSavedQueries').value;
+            if (!name) return alert('Select a query to delete');
+            if (!confirm(`Delete "${name}"?`)) return;
+            
+            const queries = JSON.parse(localStorage.getItem(QUERIES_KEY) || '{}');
+            delete queries[name];
+            localStorage.setItem(QUERIES_KEY, JSON.stringify(queries));
+            loadSavedQueriesDropdown(); 
+            reloadAqbQueries(); 
+            logToConnection(`[AQB] Deleted query "${name}"`, 'info');
+        }
+
+        function reloadAqbQueries() {
+            const queries = JSON.parse(localStorage.getItem(QUERIES_KEY) || '{}');
+            const select = document.getElementById('aqbSavedQueries');
+            select.innerHTML = '<option value="">-- Select query --</option>';
+            
+            Object.keys(queries).sort().forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+        }
+
+        function aqbRunQuery() {
+            const sql = aceEditor.getValue();
+            if (!sql.trim()) return alert('Please enter a query');
+
+            const resultsElement = document.getElementById('aqbResultsTable');
+            
+            resultsElement.innerHTML = '<div class="d-flex justify-content-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+            
+            fetch(`${PROXY_URL}/api/query`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...dbConfig,
+                    query: sql
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const tableData = data.data || data.rows || data;
+                if (!tableData || !tableData.length) {
+                    resultsElement.innerHTML = '<div class="alert alert-info">No data returned by the query.</div>';
+                    return;
+                }
+                resultsElement.innerHTML = jsonToTable(tableData);
+                resultsElement.querySelector('table').id = 'aqbResultsBodyTable';
+                resultsElement.querySelector('tbody').id = 'tableResultsBody';
+                
+                // Setup column visibility toggles for AQB results
+                setupColumnVisibilityToggles(tableData, 'aqb');
+                
+                // Add column visibility toggle for AQB (if not already exists)
+                if (!document.querySelector('#aqb .column-toggle-container')) {
+                    const columnToggleContainer = document.createElement('div');
+                    columnToggleContainer.className = 'mt-2 mb-2 column-toggle-container';
+                    columnToggleContainer.innerHTML = `
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-layout-three-columns"></i> Toggle Columns
+                            </button>
+                            <div class="dropdown-menu p-2" style="max-height: 300px; overflow-y: auto;" id="aqbColumnToggleDropdown">
+                                <!-- Column checkboxes will be added here dynamically -->
+                            </div>
+                        </div>
+                    `;
+                    resultsElement.parentNode.insertBefore(columnToggleContainer, resultsElement);
+                }
+                
+                // Add AI analysis buttons below the table (if not already exists)
+                if (!document.querySelector('#aqb .ai-analysis-buttons')) {
+                    const aiButtonsContainer = document.createElement('div');
+                    aiButtonsContainer.className = 'mt-3 ai-analysis-buttons';
+                    aiButtonsContainer.innerHTML = `
+                        <div class="d-flex justify-content-end">
+                            <button class="btn btn-sm btn-outline-primary me-2" onclick="generateAITableAnalysis(false)">
+                                <i class="bi bi-graph-up"></i> AI Analysis (All Data)
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" onclick="generateAITableAnalysis(true)">
+                                <i class="bi bi-graph-up"></i> AI Analysis (Filtered Data)
+                            </button>
+                        </div>
+                    `;
+                    resultsElement.appendChild(aiButtonsContainer);
+                }
+            })
+            .catch(error => {
+                resultsElement.innerHTML = `<div class="alert alert-danger">Error executing query: ${error.message}</div>`;
+                logToConnection(`Query failed: ${error.message}`, 'error');
+            });
+        }
+
+        function generateAIReport(type, useFilteredOnly) {
+            // Show a modal or placeholder for the analysis result
+            const resultsDiv = document.createElement('div');
+            resultsDiv.id = 'aiReportOutput';
+            resultsDiv.innerHTML = `
+                <div class="modal fade" id="aiAnalysisModal" tabindex="-1" aria-labelledby="aiAnalysisModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 90%; width: 90%;">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="aiAnalysisModalLabel">AI Data Analysis</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="analysisStatusIndicator" class="d-flex justify-content-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <span class="ms-2">Analyzing data... This may take a moment.</span>
+                                </div>
+                                <div id="aiReportContent" class="mt-3"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(resultsDiv);
+            
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('aiAnalysisModal'));
+            modal.show();
+            
+            // Determine which data to use
+            const dataToAnalyze = useFilteredOnly ? 
+                (tableResultsData?.currentData || window.poTableData?.currentData) : 
+                (window.currentExportData || tableResultsData?.originalData || window.poTableData?.originalData);
+            
+            if (!dataToAnalyze || !dataToAnalyze.length) {
+                document.getElementById('aiReportContent').innerHTML = 
+                    '<div class="alert alert-warning">No data available for analysis.</div>';
+                return;
+            }
+            
+            // Clean data before sending to AI (remove circular references and non-serializable objects)
+            const cleanData = dataToAnalyze.map(item => {
+                const cleanItem = {};
+                Object.keys(item).forEach(key => {
+                    // Only include primitive values or simple objects
+                    const value = item[key];
+                    if (value === null || 
+                        typeof value === 'string' || 
+                        typeof value === 'number' || 
+                        typeof value === 'boolean') {
+                        cleanItem[key] = value;
+                    } else {
+                        cleanItem[key] = String(value); // Convert complex objects to strings
+                    }
+                });
+                return cleanItem;
+            });
+            
+            // Send a sample of the data to the AI for analysis
+            const sampleData = cleanData.slice(0, 50);
+            
+            // Set up columns info
+            const columns = Object.keys(dataToAnalyze[0]).map(col => {
+                // Try to infer column type
+                const values = dataToAnalyze.map(row => row[col]).filter(val => val !== null && val !== undefined);
+                const sampleValue = values[0];
+                let type = 'string';
+                
+                if (values.length) {
+                    if (typeof sampleValue === 'number') {
+                        type = 'number';
+                    } else if (!isNaN(parseFloat(sampleValue))) {
+                        type = 'number';
+                    } else if (sampleValue instanceof Date) {
+                        type = 'date';
+                    }
+                }
+                
+                return { name: col, type: type };
+            });
+            
+            // Analyze data with AI
+            websim.chat.completions.create({
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are a data analysis assistant. Analyze the data with focus on product performance, comparisons, and business insights. Do not include statistical analysis unless it's directly relevant to understanding product performance.
+                        
+                        Here are some guidelines:
+                        1. Identify top and bottom performing products
+                        2. Compare products against each other in terms of sales, inventory, or other relevant metrics
+                        3. Highlight unusual patterns or outliers among products
+                        4. Make product-specific business recommendations
+                        5. Focus on actionable insights rather than purely statistical analysis
+                        
+                        Return your analysis as clean HTML that can be directly inserted into a webpage. 
+                        
+                        Use modern Bootstrap 5 styling with a professional look:
+                        - Use card components for different sections with distinct header colors
+                        - Apply appropriate background colors to highlight important insights (success for positive, warning for attention areas, danger for critical issues)
+                        - Add visual hierarchy with headings, lists and properly spaced sections
+                        - Use badges and alerts for key metrics
+                        - Include data tables with striped rows and hover effects
+                        - Add appropriate icons from Bootstrap Icons where relevant
+                        
+                        Do not include any markdown indicators or code blocks like \`\`\`html in your response - just return pure HTML directly.
+                        
+                        Here's information about the columns:
+                        ${JSON.stringify(columns)}`
+                    },
+                    {
+                        role: "user",
+                        content: [
+                            { 
+                                type: "text", 
+                                text: `Please analyze this dataset and provide insights. The dataset contains ${dataToAnalyze.length} records in total, and I'm providing a sample of ${sampleData.length} rows for your analysis.` 
+                            },
+                            {
+                                type: "text",
+                                text: JSON.stringify(sampleData)
+                            }
+                        ]
+                    }
+                ]
+            })
+            .then(response => {
+                // Display the AI's analysis
+                document.getElementById('analysisStatusIndicator').innerHTML = '<div class="text-success"><i class="bi bi-check-circle-fill"></i> <span>Analysis completed successfully!</span></div>';
+                document.getElementById('aiReportContent').innerHTML = response.content.replace(/```html|```/g, '');
+            })
+            .catch(error => {
+                document.getElementById('analysisStatusIndicator').innerHTML = '<div class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> <span>Analysis failed!</span></div>';
+                document.getElementById('aiReportContent').innerHTML = 
+                    `<div class="alert alert-danger">Error generating analysis: ${error.message}</div>`;
+            });
+        }
+
+        function generateAITableAnalysis(useFilteredOnly) {
+            // Show a modal or placeholder for the analysis result
+            const resultsDiv = document.createElement('div');
+            resultsDiv.id = 'aiAnalysisResults';
+            resultsDiv.innerHTML = `
+                <div class="modal fade" id="aiAnalysisModal" tabindex="-1" aria-labelledby="aiAnalysisModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 90%; width: 90%;">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="aiAnalysisModalLabel">AI Data Analysis</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="savedReportsSection" class="mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">Saved Reports</h6>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="refreshSavedReportsList()">
+                                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                                            </button>
+                                        </div>
+                                        <div class="card-body">
+                                            <select class="form-select mb-2" id="savedReportsDropdown">
+                                                <option value="">-- Select a saved report --</option>
+                                            </select>
+                                            <div class="d-flex justify-content-between">
+                                                <button class="btn btn-sm btn-primary" onclick="loadSavedReport()">
+                                                    <i class="bi bi-eye"></i> View
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" onclick="deleteSavedReport()">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="analysisStatusIndicator" class="d-flex justify-content-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <span class="ms-2">Analyzing data... This may take a moment.</span>
+                                </div>
+                                <div id="aiAnalysisContent" class="mt-3"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <div class="d-flex justify-content-between w-100">
+                                    <div>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="reportSaveName" placeholder="Report Name">
+                                            <button class="btn btn-success" onclick="saveAIReport()">
+                                                <i class="bi bi-save"></i> Save Report
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-outline-primary me-2" onclick="exportReportToPDF()">
+                                            <i class="bi bi-file-pdf"></i> Export to PDF
+                                        </button>
+                                        <button class="btn btn-outline-primary me-2" onclick="exportReportToHTML()">
+                                            <i class="bi bi-file-code"></i> Export to HTML
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(resultsDiv);
+            
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('aiAnalysisModal'));
+            modal.show();
+            
+            // Load saved reports
+            refreshSavedReportsList();
+            
+            // Determine which data to use
+            const dataToAnalyze = useFilteredOnly ? 
+                (tableResultsData?.currentData || window.poTableData?.currentData) : 
+                (window.currentExportData || tableResultsData?.originalData || window.poTableData?.originalData);
+            
+            if (!dataToAnalyze || !dataToAnalyze.length) {
+                document.getElementById('aiAnalysisContent').innerHTML = 
+                    '<div class="alert alert-warning">No data available for analysis.</div>';
+                return;
+            }
+            
+            // Clean data before sending to AI (remove circular references and non-serializable objects)
+            const cleanData = dataToAnalyze.map(item => {
+                const cleanItem = {};
+                Object.keys(item).forEach(key => {
+                    // Only include primitive values or simple objects
+                    const value = item[key];
+                    if (value === null || 
+                        typeof value === 'string' || 
+                        typeof value === 'number' || 
+                        typeof value === 'boolean') {
+                        cleanItem[key] = value;
+                    } else {
+                        cleanItem[key] = String(value); // Convert complex objects to strings
+                    }
+                });
+                return cleanItem;
+            });
+            
+            // Send a sample of the data to the AI for analysis (first 50 rows)
+            const sampleData = cleanData.slice(0, 50);
+            
+            // Set up columns info
+            const columns = Object.keys(dataToAnalyze[0]).map(col => {
+                // Try to infer column type
+                const values = dataToAnalyze.map(row => row[col]).filter(val => val !== null && val !== undefined);
+                const sampleValue = values[0];
+                let type = 'string';
+                
+                if (values.length) {
+                    if (typeof sampleValue === 'number') {
+                        type = 'number';
+                    } else if (!isNaN(parseFloat(sampleValue))) {
+                        type = 'number';
+                    } else if (sampleValue instanceof Date) {
+                        type = 'date';
+                    }
+                }
+                
+                return { name: col, type: type };
+            });
+            
+            // Analyze data with AI
+            websim.chat.completions.create({
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are a data analysis assistant. Analyze the data with focus on product performance, comparisons, and business insights. Do not include statistical analysis unless it's directly relevant to understanding product performance.
+                        
+                        Here are some guidelines:
+                        1. Identify top and bottom performing products
+                        2. Compare products against each other in terms of sales, inventory, or other relevant metrics
+                        3. Highlight unusual patterns or outliers among products
+                        4. Make product-specific business recommendations
+                        5. Focus on actionable insights rather than purely statistical analysis
+                        
+                        Return your analysis as clean HTML that can be directly inserted into a webpage. Use tables and formatting to make the information readable. Do not include any markdown indicators or code blocks like \`\`\`html in your response - just return pure HTML directly.
+                        
+                        Here's information about the columns:
+                        ${JSON.stringify(columns)}`
+                    },
+                    {
+                        role: "user",
+                        content: [
+                            { 
+                                type: "text", 
+                                text: `Please analyze this dataset and provide insights. The dataset contains ${dataToAnalyze.length} records in total, and I'm providing a sample of the first 50 rows for your analysis.` 
+                            },
+                            {
+                                type: "text",
+                                text: JSON.stringify(sampleData)
+                            }
+                        ]
+                    }
+                ]
+            })
+            .then(response => {
+                // Display the AI's analysis
+                document.getElementById('analysisStatusIndicator').innerHTML = '<div class="text-success"><i class="bi bi-check-circle-fill"></i> <span>Analysis completed successfully!</span></div>';
+                document.getElementById('aiAnalysisContent').innerHTML = response.content.replace(/```html|```/g, '');
+            })
+            .catch(error => {
+                // Hide the loading spinner and message
+                const loadingElement = document.querySelector('#aiAnalysisModal .modal-body > .d-flex.justify-content-center');
+                if (loadingElement) {
+                    loadingElement.innerHTML = '<div class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> <span>Analysis failed!</span></div>';
+                }
+                
+                document.getElementById('aiAnalysisContent').innerHTML = 
+                    `<div class="alert alert-danger">Error generating analysis: ${error.message}</div>`;
+            });
+        }
+
+        function jsonToTable(data) {
+            if (!data) return '<div class="alert alert-info">No data returned</div>';
+            
+            // Store the original data for filtering
+            tableResultsData.originalData = [...data];
+            tableResultsData.currentData = [...data];
+            tableResultsData.filters = {};
+            
+            const keys = Object.keys(data[0]);
+            
+            let html = '<table class="table table-striped table-bordered table-results">';
+            html += '<thead><tr>';
+            
+            keys.forEach(k => {
+                html += `
+                    <th>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>${k}</span>
+                            <div class="dropdown">
+                                <button class="btn btn-sm py-0 px-1" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-filter"></i>
+                                </button>
+                                <div class="dropdown-menu p-2" style="min-width: 200px;">
+                                    <input type="text" class="form-control form-control-sm mb-2 column-filter-input" 
+                                           data-column="${k}" placeholder="Filter ${k}..." onkeyup="applyTableFilter('${k}', this.value)">
+                                    <div class="d-flex justify-content-between">
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="sortTableColumn('${k}', 'asc')">
+                                            <i class="bi bi-sort-alpha-down"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="sortTableColumn('${k}', 'desc')">
+                                            <i class="bi bi-sort-alpha-down-alt"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="clearTableFilter('${k}')">
+                                            Clear
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </th>`;
+            });
+            
+            html += '</tr></thead><tbody id="tableResultsBody">';
+            
+            data.forEach(row => {
+                html += '<tr>';
+                
+                // Original columns
+                keys.forEach(k => {
+                    html += `<td>${row[k] !== null && row[k] !== undefined ? row[k] : ''}</td>`;
+                });
+                
+                html += '</tr>';
+            });
+            
+            return html + '</tbody></table>';
+        }
+
+        function applyTableFilter(column, value) {
+            // Save the filter value
+            tableResultsData.filters[column] = value.toLowerCase();
+            
+            // Apply all active filters
+            let filteredData = [...tableResultsData.originalData];
+            
+            Object.entries(tableResultsData.filters).forEach(([col, filterValue]) => {
+                if (filterValue) {
+                    filteredData = filteredData.filter(row => {
+                        const cellValue = row[col];
+                        if (cellValue === null || cellValue === undefined) return false;
+                        return String(cellValue).toLowerCase().includes(filterValue);
+                    });
+                }
+            });
+            
+            // Update the UI with filtered data
+            tableResultsData.currentData = filteredData;
+            updateTableBody(filteredData);
+        }
+
+        function clearTableFilter(column) {
+            // Clear specific filter
+            delete tableResultsData.filters[column];
+            
+            // Reset the input field
+            const inputField = document.querySelector(`.column-filter-input[data-column="${column}"]`);
+            if (inputField) inputField.value = '';
+            
+            // Re-apply remaining filters
+            applyTableFilter(column, '');
+        }
+
+        function sortTableColumn(column, direction) {
+            const data = [...tableResultsData.currentData];
+            
+            data.sort((a, b) => {
+                let valA = a[column];
+                let valB = b[column];
+                
+                // Handle null/undefined values
+                if (valA === null || valA === undefined) return direction === 'asc' ? -1 : 1;
+                if (valB === null || valB === undefined) return direction === 'asc' ? 1 : -1;
+                
+                // Convert to strings for comparison
+                valA = String(valA);
+                valB = String(valB);
+                
+                // Handle numeric values (remove currency symbols, etc.)
+                if (valA.includes('€')) valA = valA.replace('€', '').replace(/,/g, '');
+                if (valB.includes('€')) valB = valB.replace('€', '').replace(/,/g, '');
+                
+                const numA = parseFloat(valA);
+                const numB = parseFloat(valB);
+                
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return direction === 'asc' ? numA - numB : numB - numA;
+                }
+                
+                // String comparison
+                return direction === 'asc' ? 
+                    valA.localeCompare(valB) : 
+                    valB.localeCompare(valA);
+            });
+            
+            tableResultsData.currentData = data;
+            updateTableBody(data);
+        }
+
+        function updateTableBody(data) {
+            const tbody = document.getElementById('tableResultsBody');
+            if (!tbody || !data || !data.length) return;
+            
+            // Add this check to prevent the error when data is empty
+            if (!data || !data.length) {
+                tbody.innerHTML = '<tr><td colspan="100%" class="text-center">No data available</td></tr>';
+                return;
+            }
+            
+            // Find all columns excluding our special calculated ones
+            const columns = Object.keys(data[0]);
+            
+            let html = '';
+            data.forEach(row => {
+                html += '<tr>';
+                
+                // Original columns
+                columns.forEach(col => {
+                    html += `<td>${row[col] !== null && row[col] !== undefined ? row[col] : ''}</td>`;
+                });
+                
+                html += '</tr>';
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        function generatePurchaseOrder(data) {
+            if (!data || !data.length) {
+                alert('No data available to generate purchase order.');
+                return;
+            }
+            
+            // Create purchase order modal if it doesn't exist
+            if (!document.getElementById('purchaseOrderModal')) {
+                const modalDiv = document.createElement('div');
+                modalDiv.className = 'modal fade';
+                modalDiv.id = 'purchaseOrderModal';
+                modalDiv.setAttribute('tabindex', '-1');
+                modalDiv.setAttribute('aria-labelledby', 'purchaseOrderModalLabel');
+                modalDiv.setAttribute('aria-hidden', 'true');
+                
+                modalDiv.innerHTML = `
+                    <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 90%; width: 90%;">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="purchaseOrderModalLabel">Purchase Order Recommendations</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body" id="purchaseOrderModalBody">
+                                <!-- Content will be inserted here -->
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modalDiv);
+            }
+            
+            // Find the column names (they might be case sensitive or have variations)
+            const columns = Object.keys(data[0]);
+            const aantalColumn = columns.find(col => 
+                col.toLowerCase() === 'aantal' || 
+                col.toLowerCase().includes('aantal')
+            );
+            const voorraadColumn = columns.find(col => 
+                col.toLowerCase() === 'voorraad' || 
+                col.toLowerCase().includes('voorraad')
+            );
+            
+            if (!aantalColumn || !voorraadColumn) {
+                alert('No supplier column found in the data.');
+                return;
+            }
+            
+            // Calculate purchase order recommendations
+            const poData = data.map(item => {
+                const aantal = parseFloat(item[aantalColumn]) || 0;
+                const voorraad = parseFloat(item[voorraadColumn]) || 0;
+                
+                let suggestedOrder = 0;
+                
+                if (aantal === 0) {
+                    // Division by zero case
+                    suggestedOrder = voorraad <= 1 ? 2 : 0; // If no sales but low stock, suggest minimal order
+                } else {
+                    const voorraadAantalRatio = voorraad / aantal;
+                    if (voorraadAantalRatio < 1.5) {
+                        // Ratio below threshold, calculate order amount
+                        // The lower the ratio, the higher the suggested order
+                        const orderMultiplier = 1.5 - voorraadAantalRatio > 0 ? 1.5 - voorraadAantalRatio + 1 : 1;
+                        suggestedOrder = Math.ceil(aantal * orderMultiplier - voorraad);
+                    }
+                }
+                
+                // Ensure we don't suggest negative orders
+                suggestedOrder = Math.max(0, suggestedOrder);
+                
+                return {
+                    ...item,
+                    suggestedOrder: suggestedOrder,
+                    voorraadAantalRatio: aantal === 0 ? 0 : (voorraad / aantal).toFixed(2)
+                };
+            });
+            
+            // Sort data by default: voorraadAantalRatio ascending then suggestedOrder descending
+            poData.sort((a, b) => {
+                // First sort by voorraadAantalRatio ascending
+                if (parseFloat(a.voorraadAantalRatio) !== parseFloat(b.voorraadAantalRatio)) {
+                    return parseFloat(a.voorraadAantalRatio) - parseFloat(b.voorraadAantalRatio);
+                }
+                
+                // Then sort by suggestedOrder descending
+                return b.suggestedOrder - a.suggestedOrder;
+            });
+            
+            // Generate HTML table with suggestions
+            let html = `
+                <h4>Purchase Order Suggestions</h4>
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+            `;
+            
+            // Add all original columns plus the suggested order column with sort/filter options
+            const allColumns = [...columns];
+            
+            allColumns.forEach(col => {
+                html += `
+                    <th>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>${col}</span>
+                            <div class="dropdown">
+                                <button class="btn btn-sm py-0 px-1" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-filter"></i>
+                                </button>
+                                <div class="dropdown-menu p-2" style="min-width: 200px;">
+                                    <input type="text" class="form-control form-control-sm mb-2 po-column-filter-input" 
+                                           data-column="${col}" placeholder="Filter ${col}..." onkeyup="applyPOTableFilter('${col}', this.value)">
+                                    <div class="d-flex justify-content-between">
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="sortPOTableColumn('${col}', 'asc')">
+                                            <i class="bi bi-sort-alpha-down"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="sortPOTableColumn('${col}', 'desc')">
+                                            <i class="bi bi-sort-alpha-down-alt"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="clearPOTableFilter('${col}')">
+                                            Clear
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </th>`;
+            });
+            
+            // Add Suggested Order column 
+            html += `
+                <th>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Suggested Order</span>
+                        <div class="dropdown">
+                            <button class="btn btn-sm py-0 px-1" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-filter"></i>
+                            </button>
+                            <div class="dropdown-menu p-2" style="min-width: 200px;">
+                                <input type="text" class="form-control form-control-sm mb-2 po-column-filter-input" 
+                                       data-column="suggestedOrder" placeholder="Filter Suggested Order..." onkeyup="applyPOTableFilter('suggestedOrder', this.value)">
+                                <div class="d-flex justify-content-between">
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="sortPOTableColumn('suggestedOrder', 'asc')">
+                                        <i class="bi bi-sort-alpha-down"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="sortPOTableColumn('suggestedOrder', 'desc')">
+                                        <i class="bi bi-sort-alpha-down-alt"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="clearPOTableFilter('suggestedOrder')">
+                                        Clear
+                                    </button>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+            `;
+            
+            // Add voorraadAantalRatio column at the end
+            html += `
+                <th>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Voorraad Aantal Ratio</span>
+                        <div class="dropdown">
+                            <button class="btn btn-sm py-0 px-1" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-filter"></i>
+                            </button>
+                            <div class="dropdown-menu p-2" style="min-width: 200px;">
+                                <input type="text" class="form-control form-control-sm mb-2 po-column-filter-input" 
+                                       data-column="voorraadAantalRatio" placeholder="Filter Voorraad Aantal Ratio..." onkeyup="applyPOTableFilter('voorraadAantalRatio', this.value)">
+                                <div class="d-flex justify-content-between">
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="sortPOTableColumn('voorraadAantalRatio', 'asc')">
+                                        <i class="bi bi-sort-alpha-down"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="sortPOTableColumn('voorraadAantalRatio', 'desc')">
+                                        <i class="bi bi-sort-alpha-down-alt"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="clearPOTableFilter('voorraadAantalRatio')">
+                                        Clear
+                                    </button>
+                                </div>
+                                </div>
+                            </div>
+                        </div>
+                    </th>
+            `;
+            
+            html += `</tr>
+                        </thead>
+                        <tbody id="poTableBody">`;
+            
+            poData.forEach(row => {
+                html += '<tr>';
+                
+                // Original columns
+                columns.forEach(col => {
+                    html += `<td>${row[col] !== null && row[col] !== undefined ? row[col] : ''}</td>`;
+                });
+                
+                // Suggested order column with proper badge
+                html += `<td>${row.suggestedOrder > 0 ? 
+                    `<span class="badge bg-primary">${row.suggestedOrder}</span>` : 
+                    '<span class="badge bg-secondary">0</span>'}</td>`;
+                
+                // Add ratio with proper formatting at the end
+                const ratio = parseFloat(row.voorraadAantalRatio);
+                const ratioClass = ratio < 1.5 ? 'bg-warning' : 'bg-success';
+                html += `<td><span class="badge ${ratioClass}">${row.voorraadAantalRatio}</span></td>`;
+                
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table></div>';
+            
+            // Show summary
+            const totalSuggested = poData.reduce((sum, item) => sum + item.suggestedOrder, 0);
+            html += `
+                <div class="alert alert-info mt-3">
+                    <strong>Purchase Order Summary:</strong> ${poData.filter(i => i.suggestedOrder > 0).length} products need restocking.
+                    Total suggested order quantity: ${totalSuggested} units.
+                </div>
+                
+                <!-- Export Format Selection -->
+                <div class="form-group mt-3 mb-3">
+                    <label>Export Format:</label>
+                    <div class="d-flex">
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="radio" name="exportFormat" id="exportCSV" value="csv" checked>
+                            <label class="form-check-label" for="exportCSV">CSV (;)</label>
+                        </div>
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="radio" name="exportFormat" id="exportExcel" value="excel">
+                            <label class="form-check-label" for="exportExcel">Excel</label>
+                        </div>
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="radio" name="exportFormat" id="exportPDF" value="pdf">
+                            <label class="form-check-label" for="exportPDF">PDF</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="exportFormat" id="exportHTML" value="html">
+                            <label class="form-check-label" for="exportHTML">HTML</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Export Buttons -->
+                <div class="d-flex justify-content-end mt-3">
+                    <button class="btn btn-outline-primary me-2" onclick="exportPOData(false)">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Export All Items
+                    </button>
+                    <button class="btn btn-outline-success" onclick="exportPOData(true)">
+                        <i class="bi bi-file-earmark-arrow-down"></i> Export Items To Order (>0)
+                    </button>
+                </div>
+            `;
+            
+            // Update the modal content
+            document.getElementById('purchaseOrderModalBody').innerHTML = html;
+            
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('purchaseOrderModal'));
+            modal.show();
+            
+            // Store PO data for filtering/sorting
+            window.poTableData = {
+                originalData: [...poData],
+                currentData: [...poData],
+                filters: {}
+            };
+        }
+
+        function updatePOTableBody(data) {
+            const tbody = document.getElementById('poTableBody');
+            if (!tbody || !data || !data.length) return;
+            
+            // Add this check to prevent the error when data is empty
+            if (!data || !data.length) {
+                tbody.innerHTML = '<tr><td colspan="100%" class="text-center">No data available</td></tr>';
+                return;
+            }
+            
+            // Find all columns excluding our special calculated ones
+            const columns = Object.keys(data[0]).filter(
+                col => col !== 'suggestedOrder' && col !== 'voorraadAantalRatio'
+            );
+            
+            let html = '';
+            data.forEach(row => {
+                html += '<tr>';
+                
+                // Original columns
+                columns.forEach(col => {
+                    html += `<td>${row[col] !== null && row[col] !== undefined ? row[col] : ''}</td>`;
+                });
+                
+                // Suggested order column with proper badge
+                html += `<td>${row.suggestedOrder > 0 ? 
+                    `<span class="badge bg-primary">${row.suggestedOrder}</span>` : 
+                    '<span class="badge bg-secondary">0</span>'}</td>`;
+                
+                // Add ratio with proper formatting at the end
+                const ratio = parseFloat(row.voorraadAantalRatio);
+                const ratioClass = ratio < 1.5 ? 'bg-warning' : 'bg-success';
+                html += `<td><span class="badge ${ratioClass}">${row.voorraadAantalRatio}</span></td>`;
+                
+                html += '</tr>';
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        function applyPOTableFilter(column, value) {
+            // Save the filter value
+            window.poTableData.filters[column] = value.toLowerCase();
+            
+            // Apply all active filters
+            let filteredData = [...window.poTableData.originalData];
+            
+            Object.entries(window.poTableData.filters).forEach(([col, filterValue]) => {
+                if (filterValue) {
+                    filteredData = filteredData.filter(row => {
+                        const cellValue = row[col];
+                        if (cellValue === null || cellValue === undefined) return false;
+                        return String(cellValue).toLowerCase().includes(filterValue);
+                    });
+                }
+            });
+            
+            // Update the UI with filtered data
+            window.poTableData.currentData = filteredData;
+            updatePOTableBody(filteredData);
+        }
+
+        function clearPOTableFilter(column) {
+            // Clear specific filter
+            delete window.poTableData.filters[column];
+            
+            // Reset the input field
+            const inputField = document.querySelector(`.po-column-filter-input[data-column="${column}"]`);
+            if (inputField) inputField.value = '';
+            
+            // Re-apply remaining filters
+            applyPOTableFilter(column, '');
+        }
+
+        function sortPOTableColumn(column, direction) {
+            const data = [...window.poTableData.currentData];
+            
+            data.sort((a, b) => {
+                const valA = a[column];
+                const valB = b[column];
+                
+                // Handle null/undefined values
+                if (valA === null || valA === undefined) valA = '';
+                if (valB === null || valB === undefined) valB = '';
+                
+                // Convert to strings for comparison
+                valA = String(valA);
+                valB = String(valB);
+                
+                // Handle numeric values (remove currency symbols, etc.)
+                if (valA.includes('€')) valA = valA.replace('€', '').replace(/,/g, '');
+                if (valB.includes('€')) valB = valB.replace('€', '').replace(/,/g, '');
+                
+                const numA = parseFloat(valA);
+                const numB = parseFloat(valB);
+                
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return direction === 'asc' ? numA - numB : numB - numA;
+                }
+                
+                // String comparison
+                return direction === 'asc' ? 
+                    valA.localeCompare(valB) : 
+                    valB.localeCompare(valA);
+            });
+            
+            window.poTableData.currentData = data;
+            updatePOTableBody(data);
+        }
+
+        function buildQueryDisplay(query) {
+            if (!query) return 'Invalid query object';
+
+            if (query.SQL) {
+                return query.SQL;
+            }
+            
+            let sql = 'SELECT ';
+            
+            if (query.selectedColumns?.length) {
+                sql += `"${query.selectedColumns.join('", "')}"`; 
+            } else {
+                sql += '*';
+            }
+            
+            const tableName = query.tableName || '';
+            sql += ` FROM ${tableName}`;
+
+            if (query.filters?.length) {
+                sql += ` WHERE ${query.filters.join(' AND ')}`;
+            }
+            
+            if (query.sortColumn) {
+                sql += ` ORDER BY "${query.sortColumn}" ${query.sortDirection === 'asc' ? 'ASC' : 'DESC'}`;
+            }
+            
+            if (query.limit) {
+                sql += ` LIMIT ${query.limit}`;
+            }
+
+            return sql;
+        }
+
+        function generateSupplierSalesReport(refresh = false) {
+            const salesModal = new bootstrap.Modal(document.getElementById('salesReportModal'));
+            const data = refresh ? window.currentTableData : (window.poTableData?.originalData || tableResultsData?.originalData);
+            
+            if (!data || !data.length) {
+                alert('No data available to generate sales report.');
+                return;
+            }
+            
+            // Save current data for refresh operations
+            window.currentTableData = data;
+            
+            // Generate column selection checkboxes
+            const columns = Object.keys(data[0]);
+            const columnSelectorDiv = document.getElementById('salesReportColumnSelector');
+            columnSelectorDiv.innerHTML = '';
+            
+            // Define essential columns that should be checked by default
+            const essentialColumns = [
+                'leverancier', 'supplier', 'product', 'artikel', 'item', 
+                'aantal', 'sales', 'sold', 'voorraad', 'stock',
+                'prijs', 'price', 'selling', 'inkoop', 'cost', 'purchase'
+            ];
+            
+            // Define columns that should be unchecked by default
+            const excludedColumns = [
+                'voorraadAantalRatio', 'suggestedOrder'
+            ];
+            
+            columns.forEach(column => {
+                const isExcluded = excludedColumns.some(term => 
+                    column.toLowerCase().includes(term) || column.toLowerCase() === term
+                );
+                
+                const isEssential = !isExcluded && essentialColumns.some(term => 
+                    column.toLowerCase().includes(term) || column.toLowerCase() === term
+                );
+                
+                const checkboxDiv = document.createElement('div');
+                checkboxDiv.className = 'form-check form-check-inline';
+                checkboxDiv.innerHTML = `
+                    <input class="form-check-input" type="checkbox" id="col_${column}" 
+                           value="${column}" ${isExcluded ? '' : 'checked'}>
+                    <label class="form-check-label" for="col_${column}">${column}</label>`;
+                columnSelectorDiv.appendChild(checkboxDiv);
+            });
+            
+            // Add buttons to select/deselect all columns
+            const controlsDiv = document.createElement('div');
+            controlsDiv.className = 'mt-2';
+            controlsDiv.innerHTML = `
+                <button class="btn btn-sm btn-outline-secondary me-2" onclick="selectAllSalesColumns()">Select All</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="deselectAllSalesColumns()">Deselect All</button>
+                <button class="btn btn-sm btn-outline-primary ms-2" onclick="generateSalesReport()">Update Report</button>
+            `;
+            columnSelectorDiv.appendChild(controlsDiv);
+            
+            // Generate the report based on selected columns
+            generateSalesReport();
+            
+            // Show the modal
+            salesModal.show();
+            
+            // Update date range display
+            const dateRangeSelect = document.getElementById('salesDateRange');
+            document.getElementById('reportDateRange').textContent = dateRangeSelect.options[dateRangeSelect.selectedIndex].text;
+            
+            // Add refresh handler using selected columns
+            document.getElementById('refreshSalesReport').onclick = function() {
+                generateSalesReport();
+            };
+        }
+
+        function selectAllSalesColumns() {
+            document.querySelectorAll('#salesReportColumnSelector input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            generateSalesReport();
+        }
+
+        function deselectAllSalesColumns() {
+            document.querySelectorAll('#salesReportColumnSelector input[type="checkbox"]').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            generateSalesReport();
+        }
+
+        function generateSalesReport() {
+            const data = window.currentTableData;
+            if (!data || !data.length) {
+                document.getElementById('salesReportContent').innerHTML = 
+                    '<div class="alert alert-warning">No data available to generate sales report.</div>';
+                return;
+            }
+            
+            // Get selected columns
+            const selectedColumns = Array.from(
+                document.querySelectorAll('#salesReportColumnSelector input[type="checkbox"]:checked')
+            ).map(checkbox => checkbox.value);
+            
+            if (selectedColumns.length === 0) {
+                document.getElementById('salesReportContent').innerHTML = 
+                    '<div class="alert alert-warning">Please select at least one column to include in the report.</div>';
+                return;
+            }
+            
+            // Find the necessary columns among selected ones
+            const leverancierColumn = selectedColumns.find(col => 
+                col.toLowerCase() === 'leverancier' || 
+                col.toLowerCase().includes('leverancier') ||
+                col.toLowerCase() === 'supplier' || 
+                col.toLowerCase().includes('supplier')
+            );
+            
+            if (!leverancierColumn) {
+                document.getElementById('salesReportContent').innerHTML = 
+                    '<div class="alert alert-warning">Please select a supplier column (Leverancier/Supplier) to generate the report.</div>';
+                return;
+            }
+            
+            // Continue with existing functionality, but only use selected columns
+            const aantalColumn = selectedColumns.find(col => 
+                col.toLowerCase() === 'aantal' || 
+                col.toLowerCase().includes('aantal') ||
+                col.toLowerCase() === 'sales' || 
+                col.toLowerCase().includes('sales') ||
+                col.toLowerCase() === 'sold' || 
+                col.toLowerCase().includes('sold')
+            );
+            
+            const voorraadColumn = selectedColumns.find(col => 
+                col.toLowerCase() === 'voorraad' || 
+                col.toLowerCase().includes('voorraad') ||
+                col.toLowerCase() === 'stock' || 
+                col.toLowerCase().includes('stock')
+            );
+            
+            const priceColumn = selectedColumns.find(col => 
+                col.toLowerCase() === 'prijs' || 
+                col.toLowerCase().includes('prijs') ||
+                col.toLowerCase() === 'price' || 
+                col.toLowerCase().includes('price') ||
+                col.toLowerCase() === 'selling' || 
+                col.toLowerCase().includes('selling')
+            );
+            
+            const costColumn = selectedColumns.find(col => 
+                col.toLowerCase() === 'inkoop' || 
+                col.toLowerCase().includes('inkoop') ||
+                col.toLowerCase() === 'cost' || 
+                col.toLowerCase().includes('cost') ||
+                col.toLowerCase() === 'purchase' || 
+                col.toLowerCase().includes('purchase')
+            );
+            
+            const productColumn = selectedColumns.find(col => 
+                col.toLowerCase() === 'product' || 
+                col.toLowerCase().includes('product') ||
+                col.toLowerCase() === 'artikel' || 
+                col.toLowerCase().includes('artikel') ||
+                col.toLowerCase() === 'item' || 
+                col.toLowerCase().includes('item')
+            );
+            
+            // Group data by supplier
+            const supplierData = {};
+            
+            data.forEach(item => {
+                const supplier = leverancierColumn ? item[leverancierColumn] : 'Unknown Supplier';
+                if (!supplierData[supplier]) {
+                    supplierData[supplier] = {
+                        items: [],
+                        totalSold: 0,
+                        totalStock: 0,
+                        totalSalesExVat: 0,
+                        totalSalesIncVat: 0,
+                        totalCostExVat: 0,
+                        totalCostIncVat: 0,
+                        profit: 0
+                    };
+                }
+                
+                const aantal = aantalColumn ? parseFloat(item[aantalColumn]) || 0 : 0;
+                const voorraad = voorraadColumn ? parseFloat(item[voorraadColumn]) || 0 : 0;
+                const price = priceColumn ? parseFloat(item[priceColumn]) || 0 : 0;
+                const cost = costColumn ? parseFloat(item[costColumn]) || 0 : 0;
+                
+                const soldValue = aantal * price;
+                const costValue = aantal * cost;
+                
+                supplierData[supplier].items.push({
+                    ...item,
+                    aantal,
+                    voorraad,
+                    price,
+                    cost,
+                    soldValue,
+                    costValue,
+                    profit: soldValue - costValue
+                });
+                
+                supplierData[supplier].totalSold += aantal;
+                supplierData[supplier].totalStock += voorraad;
+                supplierData[supplier].totalSalesExVat += soldValue;
+                supplierData[supplier].totalSalesIncVat += soldValue * 1.21; // Assuming 21% VAT
+                supplierData[supplier].totalCostExVat += costValue;
+                supplierData[supplier].totalCostIncVat += costValue * 1.21; // Assuming 21% VAT
+                supplierData[supplier].profit += soldValue - costValue;
+            });
+            
+            // Sort suppliers by total sales (descending)
+            const sortedSuppliers = Object.keys(supplierData).sort((a, b) => 
+                supplierData[b].totalSalesExVat - supplierData[a].totalSalesExVat
+            );
+            
+            // Sort items within each supplier by sales (descending)
+            Object.values(supplierData).forEach(supplier => {
+                supplier.items.sort((a, b) => b.aantal - a.aantal);
+            });
+            
+            // Build the HTML for the summary table with dynamic columns
+            const columnsToRender = selectedColumns.filter(c => c !== leverancierColumn);
+            let html = `
+                <div class="mb-4">
+                    <h4>Sales Report Summary</h4>
+                    <p>Date Range: <span id="reportDateRange">Based on Query Data</span></p>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th onclick="sortSalesReportTable('supplier')">
+                                        Supplier <i class="bi bi-arrow-down-up"></i>
+                                    </th>`;
+            
+            // Only add selected columns to the header
+            columnsToRender.forEach(col => {
+               // if (col !== leverancierColumn) {
+                    html += `<th onclick="sortSalesReportTable('${col}')">
+                                ${col} <i class="bi bi-arrow-down-up"></i>
+                            </th>`;
+                //}
+            });
+            
+            html += `<th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesReportSummaryBody">`;
+            
+            sortedSuppliers.forEach(supplier => {
+                const data = supplierData[supplier];
+                html += `<tr>
+                        <td>${supplier}</td>`;
+                
+                // Only show columns that are selected
+                columnsToRender.forEach(col => {
+                    //if (col !== leverancierColumn) {
+                        // Format the cell value based on column type
+                        if (col === aantalColumn || col === voorraadColumn) {
+                            html += `<td>${data.items.reduce((sum, item) => sum + (parseFloat(item[col]) || 0), 0).toFixed(0)}</td>`;
+                        } else if (col === priceColumn || col === costColumn) {
+                            html += `<td>€${data.items.reduce((sum, item) => sum + (parseFloat(item[col]) || 0), 0).toFixed(2)}</td>`;
+                        } else {
+                            html += `<td>${data.items[0][col] || ''}</td>`;
+                        }
+                    //}
+                });
+                
+                html += `<td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-primary" onclick="toggleSupplierDetails('${supplier.replace(/'/g, "\\'")}')">
+                                <i class="bi bi-eye"></i> Details
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="printSupplierReportToPDF('${supplier}')">
+                                <i class="bi bi-printer"></i> Print to PDF
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+            
+            html += `</tbody>
+                    </table>
+                </div>
+            `;
+            
+            // Add detailed sections for each supplier (initially hidden)
+            sortedSuppliers.forEach(supplier => {
+                const data = supplierData[supplier];
+                
+                html += `
+                <div id="supplier-details-${supplier.replace(/[^a-zA-Z0-9]/g, '_')}" class="supplier-details mt-4" style="display: none;">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">${supplier} - Detailed Sales Report</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped table-bordered">
+                                    <thead class="table-secondary">
+                                        <tr>`;
+            
+            // Only add selected columns to the header (excluding supplier)
+            columnsToRender.forEach(col => {
+                //if (col !== leverancierColumn) {
+                    html += `<th>${col}</th>`;
+                //}
+            });
+            
+            html += `</tr>
+                                    </thead>
+                                    <tbody>`;
+            
+            data.items.forEach(item => {
+                const margin = item.price > 0 ? ((item.price - item.cost) / item.price * 100) : 0;
+                
+                html += `<tr>`;
+                
+                // Only show selected columns
+                columnsToRender.forEach(col => {
+                    //if (col !== leverancierColumn) {
+                        // Format the cell value based on column type
+                        if (col === aantalColumn || col === voorraadColumn) {
+                            html += `<td>${parseFloat(item[col] || 0).toFixed(0)}</td>`;
+                        } else if (col === priceColumn || col === costColumn) {
+                            html += `<td>€${parseFloat(item[col] || 0).toFixed(2)}</td>`;
+                        } else {
+                            html += `<td>${item[col] !== null && item[col] !== undefined ? item[col] : ''}</td>`;
+                        }
+                    //}
+                });
+                
+                html += `</tr>`;
+            });
+            
+            html += `
+                                    </tbody>
+                                    <tfoot class="table-dark">
+                                        <tr>`;
+            
+            // Only show totals for selected columns
+            let firstColumn = true;
+            columnsToRender.forEach(col => {
+              if (firstColumn) {
+                html += `<th>Totals</th>`;
+                firstColumn = false;
+              } else if (col === aantalColumn) {
+                html += `<th>${data.totalSold.toFixed(0)}</th>`;
+              } else if (col === voorraadColumn) {
+                html += `<th>${data.totalStock.toFixed(0)}</th>`;
+              } else if (col.startsWith('total_')) {
+                // Calculate and show totals for any column starting with total_
+                const total = data.items.reduce((sum, item) => sum + (parseFloat(item[col]) || 0), 0);
+                html += `<th>€${total.toFixed(2)}</th>`;
+              } else if (col === priceColumn || col === costColumn) {
+                html += `<th></th>`;
+              } else {
+                html += `<th></th>`;
+              }
+            });
+            
+            html += `</tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end mt-3">
+                            <button class="btn btn-outline-success me-2" onclick="printSupplierReportToPDF('${supplier}')">
+                                <i class="bi bi-printer"></i> Print to PDF
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="toggleSupplierDetails('${supplier.replace(/'/g, "\\'")}')">
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            
+            // Store the supplier data for PDF export
+            window.supplierSalesData = supplierData;
+            
+            // Update the modal content
+            document.getElementById('salesReportContent').innerHTML = html;
+            
+            // Update date range display
+            document.getElementById('reportDateRange').textContent = "Based on Query Data";
+        }
+        
+        function toggleSupplierDetails(supplier) {
+            const detailsId = `supplier-details-${supplier.replace(/[^a-zA-Z0-9]/g, '_')}`;
+            const detailsElement = document.getElementById(detailsId);
+            
+            if (detailsElement) {
+                detailsElement.style.display = detailsElement.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+        
+        function printSupplierReportToPDF(supplier) {
+            pdfExportSupplier = supplier;
+            
+            // Get current date and calculate previous month
+            const now = new Date();
+            const prevMonth = new Date(now);
+            prevMonth.setMonth(now.getMonth() - 1);
+            
+            // Populate year dropdown (current year and previous 5 years)
+            const yearSelect = document.getElementById('reportYear');
+            yearSelect.innerHTML = '';
+            const currentYear = now.getFullYear();
+            for (let year = currentYear; year >= currentYear - 5; year--) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            }
+            
+            // Set default values to previous month
+            document.getElementById('reportMonth').value = prevMonth.getMonth() + 1;
+            document.getElementById('reportYear').value = prevMonth.getFullYear();
+            
+            // Set up confirmation button
+            document.getElementById('confirmReportPeriod').onclick = function() {
+                const monthSelect = document.getElementById('reportMonth');
+                const yearSelect = document.getElementById('reportYear');
+                const month = monthSelect.options[monthSelect.selectedIndex].textContent;
+                const year = yearSelect.value;
+                
+                generatePDF(supplier, month, year);
+                
+                // Hide modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('monthSelectModal'));
+                modal.hide();
+            };
+            
+            // Show the month selection modal
+            const modal = new bootstrap.Modal(document.getElementById('monthSelectModal'));
+            modal.show();
+        }
+        
+        function generatePDF(supplier, month, year) {
+            // Find the supplier details container
+            const supplierDetailsId = `supplier-details-${supplier.replace(/[^a-zA-Z0-9]/g, '_')}`;
+            const supplierDetailsElement = document.getElementById(supplierDetailsId);
+            
+            if (!supplierDetailsElement) {
+                alert('Could not find supplier details to print');
+                return;
+            }
+            
+            // Get the table data
+            const table = supplierDetailsElement.querySelector('table');
+            if (!table) {
+                alert('Could not find table data to print');
+                return;
+            }
+            
+            // Create jsPDF instance
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape', 'mm', 'a4');
+            
+            // Add title and metadata
+            doc.setFontSize(16);
+            doc.text(`${supplier} - Detailed Sales Report`, 15, 15);
+            doc.setFontSize(12);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 15, 22);
+            doc.text(`Period: ${month} ${year}`, 15, 29);
+            
+            // Get column headers
+            const headerRow = table.querySelector('thead tr');
+            const headers = Array.from(headerRow.cells).map(cell => cell.textContent.trim());
+            
+            // Get data rows
+            const dataRows = Array.from(table.querySelectorAll('tbody tr')).map(row => {
+                return Array.from(row.cells).map(cell => cell.textContent.trim());
+            });
+            
+            // Get footer data
+            const footerRow = table.querySelector('tfoot tr');
+            const footerData = footerRow ? Array.from(footerRow.cells).map(cell => cell.textContent.trim()) : [];
+            
+            // Create table with autotable plugin
+            doc.autoTable({
+                head: [headers],
+                body: dataRows,
+                foot: footerRow ? [footerData] : undefined,
+                startY: 35,
+                theme: 'grid',
+                headStyles: { fillColor: [51, 122, 183], textColor: 255 },
+                footStyles: { fillColor: [51, 51, 51], textColor: 255 },
+                alternateRowStyles: { fillColor: [245, 245, 245] },
+                margin: { top: 35 }
+            });
+            
+            // Save the PDF
+            doc.save(`${supplier}_Sales_Report_${month}_${year}.pdf`);
+        }
+        
+        function sortSalesReportTable(column) {
+            // Get the table body
+            const tbody = document.getElementById('salesReportSummaryBody');
+            if (!tbody) return;
+            
+            // Get all rows
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            if (!rows.length) return;
+            
+            // Check current sort order
+            const currentOrder = tbody.getAttribute('data-sort-order') || 'asc';
+            const currentColumn = tbody.getAttribute('data-sort-column');
+            
+            // Determine new sort order
+            const newOrder = (currentColumn === column && currentOrder === 'asc') ? 'desc' : 'asc';
+            
+            // Store sort state
+            tbody.setAttribute('data-sort-column', column);
+            tbody.setAttribute('data-sort-order', newOrder);
+            
+            // Sort the rows
+            rows.sort((a, b) => {
+                let cellA, cellB;
+                
+                if (column === 'supplier') {
+                    cellA = a.cells[0].textContent.trim();
+                    cellB = b.cells[0].textContent.trim();
+                } else {
+                    // Find the index of the column
+                    const colIndex = Array.from(a.parentElement.parentElement.querySelector('thead tr').cells)
+                        .findIndex(cell => cell.textContent.trim().startsWith(column));
+                    
+                    if (colIndex < 0) return 0;
+                    
+                    cellA = a.cells[colIndex].textContent.trim();
+                    cellB = b.cells[colIndex].textContent.trim();
+                }
+                
+                // Handle numeric values (remove currency symbols, etc.)
+                if (cellA.includes('€')) cellA = cellA.replace('€', '').replace(/,/g, '');
+                if (cellB.includes('€')) cellB = cellB.replace('€', '').replace(/,/g, '');
+                
+                const numA = parseFloat(cellA);
+                const numB = parseFloat(cellB);
+                
+                if (!isNaN(numA) && !isNaN(numB)) {
+                    return newOrder === 'asc' ? numA - numB : numB - numA;
+                }
+                
+                // String comparison
+                return newOrder === 'asc' ? 
+                    cellA.localeCompare(cellB) : 
+                    cellB.localeCompare(cellA);
+            });
+            
+            // Reorder the rows in the DOM
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function exportTableData(format) {
+            const data = window.currentExportData;
+            if (!data || !data.length) {
+                alert('No data available to export');
+                return;
+            }
+            
+            const selectedQuery = document.getElementById('savedQueriesDropdown').value;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `${selectedQuery || 'query_result'}_${timestamp}`;
+            
+            if (format === 'csv') {
+                exportToCSV(data, filename);
+            } else if (format === 'excel') {
+                exportToExcel(data, filename);
+            }
+        }
+        
+        function exportToCSV(data, filename) {
+            // ... existing code ...
+
+        }
+        function exportToExcel(data, filename) {
+            // Use SheetJS library to create a proper Excel file
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Data");
+            
+            // Generate the Excel file
+            XLSX.writeFile(workbook, `${filename}.xlsx`);
+        }
+
+        function exportPOData(onlyOrderItems = false) {
+            const data = window.poTableData?.currentData;
+            if (!data || !data.length) {
+                alert('No data available to export');
+                return;
+            }
+            
+            // Filter data if we only want items with orders > 0
+            const exportData = onlyOrderItems ? 
+                data.filter(item => item.suggestedOrder > 0) : 
+                data;
+            
+            if (exportData.length === 0) {
+                alert('No items to export based on the current filter');
+                return;
+            }
+            
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `Purchase_Order_${onlyOrderItems ? 'Items_To_Order' : 'All_Items'}_${timestamp}`;
+            
+            // Get selected export format
+            const selectedFormatElement = document.querySelector('input[name="exportFormat"]:checked');
+            
+            if (!selectedFormatElement) {
+                // Default to CSV if no format is selected
+                exportPOToCSV(exportData, filename);
+                return;
+            }
+            
+            const selectedFormat = selectedFormatElement.value;
+            
+            switch(selectedFormat) {
+                case 'excel':
+                    exportPOToExcel(exportData, filename);
+                    break;
+                case 'pdf':
+                    exportPOToPDF(exportData, filename);
+                    break;
+                case 'html':
+                    exportPOToHTML(exportData, filename);
+                    break;
+                case 'csv':
+                default:
+                    exportPOToCSV(exportData, filename);
+            }
+        }
+        
+        function exportPOToCSV(data, filename) {
+            // Convert JSON to CSV with semicolon delimiter
+            const replacer = (key, value) => value === null ? '' : value;
+            const header = Object.keys(data[0]);
+            let csv = data.map(row => header.map(fieldName => 
+                JSON.stringify(row[fieldName], replacer)).join(';'));
+            csv.unshift(header.join(';'));
+            csv = csv.join('\r\n');
+            
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${filename}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function exportPOToExcel(data, filename) {
+            // Use SheetJS library to create a proper Excel file
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "PO Data");
+            
+            // Generate the Excel file
+            XLSX.writeFile(workbook, `${filename}.xlsx`);
+        }
+        
+        function exportPOToPDF(data, filename) {
+            // Create jsPDF instance
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape', 'mm', 'a4');
+            
+            // Add title
+            doc.setFontSize(16);
+            doc.text('Purchase Order Recommendations', 15, 15);
+            doc.setFontSize(12);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 15, 22);
+            
+            // Create table with autotable plugin
+            const headers = Object.keys(data[0]);
+            const rows = data.map(item => Object.values(item));
+            
+            doc.autoTable({
+                head: [headers],
+                body: rows,
+                startY: 30,
+                theme: 'grid',
+                headStyles: { fillColor: [51, 122, 183], textColor: 255 },
+                alternateRowStyles: { fillColor: [245, 245, 245] }
+            });
+            
+            // Save the PDF
+            doc.save(`${filename}.pdf`);
+        }
+        
+        function exportPOToHTML(data, filename) {
+            // Generate HTML table
+            let html = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <title>${filename}</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+                <style>
+                    body { padding: 20px; }
+                    .header { margin-bottom: 30px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>Purchase Order Recommendations</h1>
+                        <p>Generated on: ${new Date().toLocaleString()}</p>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered">
+                            <thead class="table-primary">
+                                <tr>
+            `;
+            
+            // Add headers
+            const headers = Object.keys(data[0]);
+            headers.forEach(header => {
+                html += `<th>${header}</th>`;
+            });
+            
+            html += `
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            // Add data rows
+            data.forEach(row => {
+                html += '<tr>';
+                headers.forEach(header => {
+                    html += `<td>${row[header] !== null && row[header] !== undefined ? row[header] : ''}</td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </body>
+            </html>
+            `;
+            
+            // Create a blob and download link
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function generateAITableAnalysis(useFilteredOnly) {
+            // Show a modal or placeholder for the analysis result
+            const resultsDiv = document.createElement('div');
+            resultsDiv.id = 'aiAnalysisResults';
+            resultsDiv.innerHTML = `
+                <div class="modal fade" id="aiAnalysisModal" tabindex="-1" aria-labelledby="aiAnalysisModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 90%; width: 90%;">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="aiAnalysisModalLabel">AI Data Analysis</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="savedReportsSection" class="mb-3">
+                                    <div class="card bg-light">
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">Saved Reports</h6>
+                                            <button class="btn btn-sm btn-outline-primary" onclick="refreshSavedReportsList()">
+                                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                                            </button>
+                                        </div>
+                                        <div class="card-body">
+                                            <select class="form-select mb-2" id="savedReportsDropdown">
+                                                <option value="">-- Select a saved report --</option>
+                                            </select>
+                                            <div class="d-flex justify-content-between">
+                                                <button class="btn btn-sm btn-primary" onclick="loadSavedReport()">
+                                                    <i class="bi bi-eye"></i> View
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" onclick="deleteSavedReport()">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div id="analysisStatusIndicator" class="d-flex justify-content-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <span class="ms-2">Analyzing data... This may take a moment.</span>
+                                </div>
+                                <div id="aiAnalysisContent" class="mt-3"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <div class="d-flex justify-content-between w-100">
+                                    <div>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="reportSaveName" placeholder="Report Name">
+                                            <button class="btn btn-success" onclick="saveAIReport()">
+                                                <i class="bi bi-save"></i> Save Report
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-outline-primary me-2" onclick="exportReportToPDF()">
+                                            <i class="bi bi-file-pdf"></i> Export to PDF
+                                        </button>
+                                        <button class="btn btn-outline-primary me-2" onclick="exportReportToHTML()">
+                                            <i class="bi bi-file-code"></i> Export to HTML
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(resultsDiv);
+            
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('aiAnalysisModal'));
+            modal.show();
+            
+            // Load saved reports
+            refreshSavedReportsList();
+            
+            // Determine which data to use
+            const dataToAnalyze = useFilteredOnly ? 
+                (tableResultsData?.currentData || window.poTableData?.currentData) : 
+                (window.currentExportData || tableResultsData?.originalData || window.poTableData?.originalData);
+            
+            if (!dataToAnalyze || !dataToAnalyze.length) {
+                document.getElementById('aiAnalysisContent').innerHTML = 
+                    '<div class="alert alert-warning">No data available for analysis.</div>';
+                return;
+            }
+            
+            // Clean data before sending to AI (remove circular references and non-serializable objects)
+            const cleanData = dataToAnalyze.map(item => {
+                const cleanItem = {};
+                Object.keys(item).forEach(key => {
+                    // Only include primitive values or simple objects
+                    const value = item[key];
+                    if (value === null || 
+                        typeof value === 'string' || 
+                        typeof value === 'number' || 
+                        typeof value === 'boolean') {
+                        cleanItem[key] = value;
+                    } else {
+                        cleanItem[key] = String(value); // Convert complex objects to strings
+                    }
+                });
+                return cleanItem;
+            });
+            
+            // Send a sample of the data to the AI for analysis (first 50 rows)
+            const sampleData = cleanData.slice(0, 50);
+            
+            // Set up columns info
+            const columns = Object.keys(dataToAnalyze[0]).map(col => {
+                // Try to infer column type
+                const values = dataToAnalyze.map(row => row[col]).filter(val => val !== null && val !== undefined);
+                const sampleValue = values[0];
+                let type = 'string';
+                
+                if (values.length) {
+                    if (typeof sampleValue === 'number') {
+                        type = 'number';
+                    } else if (!isNaN(parseFloat(sampleValue))) {
+                        type = 'number';
+                    } else if (sampleValue instanceof Date) {
+                        type = 'date';
+                    }
+                }
+                
+                return { name: col, type: type };
+            });
+            
+            // Analyze data with AI
+            websim.chat.completions.create({
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are a data analysis assistant. Analyze the data with focus on product performance, comparisons, and business insights. Do not include statistical analysis unless it's directly relevant to understanding product performance.
+                        
+                        Here are some guidelines:
+                        1. Identify top and bottom performing products
+                        2. Compare products against each other in terms of sales, inventory, or other relevant metrics
+                        3. Highlight unusual patterns or outliers among products
+                        4. Make product-specific business recommendations
+                        5. Focus on actionable insights rather than purely statistical analysis
+                        
+                        Return your analysis as clean HTML that can be directly inserted into a webpage. 
+                        
+                        Use modern Bootstrap 5 styling with a professional look:
+                        - Use card components for different sections with distinct header colors
+                        - Apply appropriate background colors to highlight important insights (success for positive, warning for attention areas, danger for critical issues)
+                        - Add visual hierarchy with headings, lists and properly spaced sections
+                        - Use badges and alerts for key metrics
+                        - Include data tables with striped rows and hover effects
+                        - Add appropriate icons from Bootstrap Icons where relevant
+                        
+                        Do not include any markdown indicators or code blocks like \`\`\`html in your response - just return pure HTML directly.
+                        
+                        Here's information about the columns:
+                        ${JSON.stringify(columns)}`
+                    },
+                    {
+                        role: "user",
+                        content: [
+                            { 
+                                type: "text", 
+                                text: `Please analyze this dataset and provide insights. The dataset contains ${dataToAnalyze.length} records in total, and I'm providing a sample of the first 50 rows for your analysis.` 
+                            },
+                            {
+                                type: "text",
+                                text: JSON.stringify(sampleData)
+                            }
+                        ]
+                    }
+                ]
+            })
+            .then(response => {
+                // Display the AI's analysis
+                document.getElementById('analysisStatusIndicator').innerHTML = '<div class="text-success"><i class="bi bi-check-circle-fill"></i> <span>Analysis completed successfully!</span></div>';
+                document.getElementById('aiAnalysisContent').innerHTML = response.content.replace(/```html|```/g, '');
+            })
+            .catch(error => {
+                // Hide the loading spinner and message
+                const loadingElement = document.querySelector('#aiAnalysisModal .modal-body > .d-flex.justify-content-center');
+                if (loadingElement) {
+                    loadingElement.innerHTML = '<div class="text-danger"><i class="bi bi-exclamation-triangle-fill"></i> <span>Analysis failed!</span></div>';
+                }
+                
+                document.getElementById('aiAnalysisContent').innerHTML = 
+                    `<div class="alert alert-danger">Error generating analysis: ${error.message}</div>`;
+            });
+        }
+
+        function setupColumnVisibilityToggles(data, prefix = '') {
+            if (!data || !data.length) return;
+            
+            const dropdownId = prefix ? `${prefix}ColumnToggleDropdown` : 'columnToggleDropdown';
+            const dropdown = document.getElementById(dropdownId);
+            if (!dropdown) return;
+            
+            dropdown.innerHTML = '';
+            
+            // Get column names from the first data row
+            const columns = Object.keys(data[0]);
+            
+            // Create checkbox for each column
+            columns.forEach(column => {
+                const checkboxId = `${prefix ? prefix + '_' : ''}col_visibility_${column.replace(/\s+/g, '_')}`;
+                const checkboxDiv = document.createElement('div');
+                checkboxDiv.className = 'form-check';
+                checkboxDiv.innerHTML = `
+                    <input class="form-check-input column-visibility-toggle" type="checkbox" id="${checkboxId}" 
+                           data-column="${column}" data-prefix="${prefix}" checked>
+                    <label class="form-check-label" for="${checkboxId}">${column}</label>`;
+                dropdown.appendChild(checkboxDiv);
+                
+                // Removed the immediate toggle event listener as we'll now use the confirm button
+            });
+            
+            // Add select/deselect all option
+            const selectAllDiv = document.createElement('div');
+            selectAllDiv.className = 'dropdown-divider';
+            dropdown.appendChild(selectAllDiv);
+            
+            const buttonsDiv = document.createElement('div');
+            buttonsDiv.className = 'd-flex justify-content-between p-1';
+            buttonsDiv.innerHTML = `
+                <button class="btn btn-sm btn-outline-secondary" onclick="selectAllColumns('${prefix}')">Select All</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="deselectAllColumns('${prefix}')">Deselect All</button>
+            `;
+            dropdown.appendChild(buttonsDiv);
+            
+            // Add apply button
+            const applyDiv = document.createElement('div');
+            applyDiv.className = 'dropdown-divider';
+            dropdown.appendChild(applyDiv);
+            
+            const confirmDiv = document.createElement('div');
+            confirmDiv.className = 'd-flex justify-content-center p-1';
+            confirmDiv.innerHTML = `
+                <button class="btn btn-sm btn-primary" onclick="applyColumnVisibilityChanges('${prefix}')">Apply Changes</button>
+            `;
+            dropdown.appendChild(confirmDiv);
+        }
+
+        function applyColumnVisibilityChanges(prefix = '') {
+            const dropdownId = prefix ? `${prefix}ColumnToggleDropdown` : 'columnToggleDropdown';
+            const checkboxes = document.querySelectorAll(`#${dropdownId} input.column-visibility-toggle`);
+            
+            checkboxes.forEach(checkbox => {
+                toggleColumnVisibility(checkbox.dataset.column, checkbox.checked, prefix);
+            });
+        }
+
+        function selectAllColumns(prefix = '') {
+            const dropdownId = prefix ? `${prefix}ColumnToggleDropdown` : 'columnToggleDropdown';
+            const checkboxes = document.querySelectorAll(`#${dropdownId} input.column-visibility-toggle`);
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+                // Removed the immediate toggle - will apply when confirm button is clicked
+            });
+        }
+
+        function deselectAllColumns(prefix = '') {
+            const dropdownId = prefix ? `${prefix}ColumnToggleDropdown` : 'columnToggleDropdown';
+            const checkboxes = document.querySelectorAll(`#${dropdownId} input.column-visibility-toggle`);
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+                // Removed the immediate toggle - will apply when confirm button is clicked
+            });
+        }
+
+        function toggleColumnVisibility(column, isVisible, prefix = '') {
+            // Determine which table to target based on prefix
+            const tableId = prefix ? `${prefix}ResultsBodyTable` : 'queryResultsTable';
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            
+            // Find all matching column cells
+            const headerCells = table.querySelectorAll('thead th');
+            const columnIndex = Array.from(headerCells).findIndex(cell => 
+                cell.textContent.trim().startsWith(column));
+            
+            if (columnIndex === -1) return;
+            
+            // Toggle visibility of the header and all cells in that column
+            const style = isVisible ? '' : 'none';
+            
+            // Toggle header
+            headerCells[columnIndex].style.display = style;
+            
+            // Toggle all body cells in that column
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                if (row.cells.length > columnIndex) {
+                    row.cells[columnIndex].style.display = style;
+                }
+            });
+        }
+
+        function refreshSavedReportsList() {
+            const SAVED_REPORTS_KEY = 'pgExplorerAIReports';
+            const savedReportsDropdown = document.getElementById('savedReportsDropdown');
+            
+            // Clear existing options
+            savedReportsDropdown.innerHTML = '<option value="">-- Select a saved report --</option>';
+            
+            // Get saved reports from localStorage
+            const savedReports = JSON.parse(localStorage.getItem(SAVED_REPORTS_KEY) || '{}');
+            
+            // Populate dropdown with saved reports
+            Object.keys(savedReports).sort().forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                savedReportsDropdown.appendChild(option);
+            });
+        }
+        
+        function loadSavedReport() {
+            const SAVED_REPORTS_KEY = 'pgExplorerAIReports';
+            const reportName = document.getElementById('savedReportsDropdown').value;
+            
+            if (!reportName) {
+                alert('Please select a report to load');
+                return;
+            }
+            
+            const savedReports = JSON.parse(localStorage.getItem(SAVED_REPORTS_KEY) || '{}');
+            const reportContent = savedReports[reportName];
+            
+            if (reportContent) {
+                // Hide loading indicator
+                document.getElementById('analysisStatusIndicator').innerHTML = 
+                    '<div class="text-success"><i class="bi bi-check-circle-fill"></i> <span>Loaded saved report</span></div>';
+                
+                // Display the saved report
+                document.getElementById('aiAnalysisContent').innerHTML = reportContent;
+            }
+        }
+        
+        function deleteSavedReport() {
+            const SAVED_REPORTS_KEY = 'pgExplorerAIReports';
+            const reportName = document.getElementById('savedReportsDropdown').value;
+            
+            if (!reportName) {
+                alert('Please select a report to delete');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to delete the report "${reportName}"?`)) {
+                const savedReports = JSON.parse(localStorage.getItem(SAVED_REPORTS_KEY) || '{}');
+                delete savedReports[reportName];
+                localStorage.setItem(SAVED_REPORTS_KEY, JSON.stringify(savedReports));
+                
+                refreshSavedReportsList();
+            }
+        }
+        
+        function saveAIReport() {
+            const SAVED_REPORTS_KEY = 'pgExplorerAIReports';
+            const reportName = document.getElementById('reportSaveName').value.trim();
+            const reportContent = document.getElementById('aiAnalysisContent').innerHTML;
+            
+            if (!reportName) {
+                alert('Please enter a name for this report');
+                return;
+            }
+            
+            const savedReports = JSON.parse(localStorage.getItem(SAVED_REPORTS_KEY) || '{}');
+            savedReports[reportName] = reportContent;
+            localStorage.setItem(SAVED_REPORTS_KEY, JSON.stringify(savedReports));
+            
+            alert(`Report "${reportName}" saved successfully!`);
+            document.getElementById('reportSaveName').value = '';
+            refreshSavedReportsList();
+        }
+        
+        function exportReportToPDF() {
+            const reportContent = document.getElementById('aiAnalysisContent');
+            if (!reportContent.innerHTML.trim()) {
+                alert('No report content to export');
+                return;
+            }
+            
+            // Create a new jsPDF instance
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            
+            // Add title
+            doc.setFontSize(16);
+            doc.text('AI Data Analysis Report', 15, 15);
+            doc.setFontSize(10);
+            doc.text(`Generated on: ${new Date().toLocaleString()}`, 15, 22);
+            
+            // We can't directly convert HTML to PDF with jsPDF
+            // For simple reports, extract text content
+            const plainText = reportContent.innerText;
+            
+            // Split into lines and add to PDF
+            const lines = doc.splitTextToSize(plainText, 180);
+            doc.setFontSize(10);
+            doc.text(lines, 15, 30);
+            
+            // Save the PDF
+            doc.save('AI_Analysis_Report.pdf');
+            
+            // Note: For better HTML-to-PDF conversion, a more advanced library would be needed
+            alert('PDF export completed. Note that formatting is simplified in the PDF version.');
+        }
+        
+        function exportReportToHTML() {
+            const reportContent = document.getElementById('aiAnalysisContent');
+            if (!reportContent.innerHTML.trim()) {
+                alert('No report content to export');
+                return;
+            }
+            
+            // Create a new HTML document with proper styling
+            const html = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="utf-8"/>
+                <title>AI Data Analysis Report</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+                <style>
+                    body { padding: 20px; }
+                    .report-header { margin-bottom: 30px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="report-header">
+                        <h1>AI Data Analysis Report</h1>
+                        <p class="text-muted">Generated on: ${new Date().toLocaleString()}</p>
+                    </div>
+                    <div class="report-content">
+                        ${reportContent.innerHTML}
+                    </div>
+                </div>
+            </body>
+            </html>
+            `;
+            
+            // Create a blob and download link
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'AI_Analysis_Report.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
